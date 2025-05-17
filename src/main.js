@@ -4,7 +4,6 @@ import * as OBCF from "@thatopen/components-front";
 import * as BUIC from "@thatopen/ui-obc";
 import { BrowserProvider, Contract } from "ethers";
 
-
 async function main() {
   // Inicialitza la UI
   BUI.Manager.init();
@@ -63,6 +62,8 @@ async function main() {
 
   // Panell per carregar IFC
   const panelCustomIFCLoader = BUI.Component.create(() => {
+    let lastHash = null;         // Guarda l'últim hash registrat
+    let showHashBox = false;     // Controla si s'ha de mostrar la caixa de hash
     const onUploadClick = () => inputFile.click();
     return BUI.html`
       <bim-panel label="Carrega IFC">
@@ -170,172 +171,314 @@ async function main() {
 
   const CONTRACT_ADDRESS = "0x03c89df2366f99C8e4E4C9010143d54064c0E893"; // <-- CANVIA per la teva!
   const CONTRACT_ABI = [
-	{
-		"anonymous": false,
-		"inputs": [
-			{ "indexed": false, "internalType": "string", "name": "hash", "type": "string" },
-			{ "indexed": false, "internalType": "string", "name": "filename", "type": "string" },
-			{ "indexed": false, "internalType": "string", "name": "version", "type": "string" },
-			{ "indexed": false, "internalType": "string", "name": "description", "type": "string" },
-			{ "indexed": false, "internalType": "string", "name": "datetime", "type": "string" },
-			{ "indexed": true,  "internalType": "address", "name": "author", "type": "address" }
-		],
-		"name": "ModelRegistered",
-		"type": "event"
-	},
-	{
-		"inputs": [
-			{ "internalType": "string", "name": "hash", "type": "string" },
-			{ "internalType": "string", "name": "filename", "type": "string" },
-			{ "internalType": "string", "name": "version", "type": "string" },
-			{ "internalType": "string", "name": "description", "type": "string" },
-			{ "internalType": "string", "name": "datetime", "type": "string" }
-		],
-		"name": "registerModel",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{ "internalType": "string", "name": "hash", "type": "string" }
-		],
-		"name": "getModelInfo",
-		"outputs": [
-			{ "internalType": "string", "name": "filename", "type": "string" },
-			{ "internalType": "string", "name": "version", "type": "string" },
-			{ "internalType": "string", "name": "description", "type": "string" },
-			{ "internalType": "string", "name": "datetime", "type": "string" },
-			{ "internalType": "address", "name": "author", "type": "address" }
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{ "internalType": "string", "name": "hash", "type": "string" }
-		],
-		"name": "isModelRegistered",
-		"outputs": [
-			{ "internalType": "bool", "name": "", "type": "bool" }
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{ "internalType": "string", "name": "", "type": "string" }
-		],
-		"name": "isRegistered",
-		"outputs": [
-			{ "internalType": "bool", "name": "", "type": "bool" }
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{ "internalType": "string", "name": "", "type": "string" }
-		],
-		"name": "models",
-		"outputs": [
-			{ "internalType": "string", "name": "filename", "type": "string" },
-			{ "internalType": "string", "name": "version", "type": "string" },
-			{ "internalType": "string", "name": "description", "type": "string" },
-			{ "internalType": "string", "name": "datetime", "type": "string" },
-			{ "internalType": "address", "name": "author", "type": "address" }
-		],
-		"stateMutability": "view",
-		"type": "function"
-	}
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": false, "internalType": "string", "name": "hash", "type": "string" },
+      { "indexed": false, "internalType": "string", "name": "filename", "type": "string" },
+      { "indexed": false, "internalType": "string", "name": "version", "type": "string" },
+      { "indexed": false, "internalType": "string", "name": "description", "type": "string" },
+      { "indexed": false, "internalType": "string", "name": "datetime", "type": "string" },
+      { "indexed": true,  "internalType": "address", "name": "author", "type": "address" }
+    ],
+    "name": "ModelRegistered",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      { "internalType": "string", "name": "hash", "type": "string" },
+      { "internalType": "string", "name": "filename", "type": "string" },
+      { "internalType": "string", "name": "version", "type": "string" },
+      { "internalType": "string", "name": "description", "type": "string" },
+      { "internalType": "string", "name": "datetime", "type": "string" }
+    ],
+    "name": "registerModel",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "string", "name": "hash", "type": "string" }
+    ],
+    "name": "getModelInfo",
+    "outputs": [
+      { "internalType": "string", "name": "filename", "type": "string" },
+      { "internalType": "string", "name": "version", "type": "string" },
+      { "internalType": "string", "name": "description", "type": "string" },
+      { "internalType": "string", "name": "datetime", "type": "string" },
+      { "internalType": "address", "name": "author", "type": "address" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "string", "name": "hash", "type": "string" }
+    ],
+    "name": "isModelRegistered",
+    "outputs": [
+      { "internalType": "bool", "name": "", "type": "bool" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "string", "name": "", "type": "string" }
+    ],
+    "name": "isRegistered",
+    "outputs": [
+      { "internalType": "bool", "name": "", "type": "bool" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "string", "name": "", "type": "string" }
+    ],
+    "name": "models",
+    "outputs": [
+      { "internalType": "string", "name": "filename", "type": "string" },
+      { "internalType": "string", "name": "version", "type": "string" },
+      { "internalType": "string", "name": "description", "type": "string" },
+      { "internalType": "string", "name": "datetime", "type": "string" },
+      { "internalType": "address", "name": "author", "type": "address" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
 ];
 
 
-  const panelBIMCoin = BUI.Component.create(() => {
-    const onInput = (field) => (e) => {
-      formData[field] = e.target.value;
-    };
+  let lastHash = null;
+let showHashBox = false;
+let checkInputHash = "";
+let checkInfoResult = null;
+let checkErrorMsg = "";
+let panelBIMCoin;
 
-    const registerModel = async () => {
-      if (!currentIFCBuffer) {
-        alert("Carrega un model IFC primer!");
-        return;
-      }
-      if (!formData.filename || !formData.version || !formData.description || !formData.datetime) {
-        alert("Si us plau, omple tots els camps!");
-        return;
-      }
-      const hashBuffer = await crypto.subtle.digest('SHA-256', currentIFCBuffer);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+panelBIMCoin = BUI.Component.create(() => {
+  const onInput = (field) => (e) => {
+    formData[field] = e.target.value;
+  };
 
-      if (!window.ethereum) {
-        alert("Instal·la MetaMask primer!");
-        return;
-      }
+  const registerModel = async () => {
+    if (!currentIFCBuffer) {
+      alert("Carrega un model IFC primer!");
+      return;
+    }
+    if (!formData.filename || !formData.version || !formData.description || !formData.datetime) {
+      alert("Si us plau, omple tots els camps!");
+      return;
+    }
+    const hashBuffer = await crypto.subtle.digest('SHA-256', currentIFCBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('').toLowerCase();
 
-      try {
-        const provider = new BrowserProvider(window.ethereum);
-        await provider.send("eth_requestAccounts", []);
-        const signer = await provider.getSigner();
-        const contract = new Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
-
-        // **Nova validació!**
-    const alreadyRegistered = await contract.isModelRegistered(hashHex);
-    if (alreadyRegistered) {
-      // Opcional: mostra info extra
-      const info = await contract.getModelInfo(hashHex);
-      alert(
-        "Aquest model ja està registrat a la blockchain!\n" +
-        `Nom: ${info.filename}\nVersió: ${info.version}\nDescripció: ${info.description}\nData/hora: ${info.datetime}\nAutor: ${info.author}`
-      );
+    if (!window.ethereum) {
+      alert("Instal·la MetaMask primer!");
       return;
     }
 
+    try {
+      const provider = new BrowserProvider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      const signer = await provider.getSigner();
+      const contract = new Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
 
-        // Crida la funció registerModel amb tots els camps!
-        const tx = await contract.registerModel(
-          hashHex,
-          formData.filename,
-          formData.version,
-          formData.description,
-          formData.datetime
+      const alreadyRegistered = await contract.isModelRegistered(hashHex);
+      if (alreadyRegistered) {
+        const info = await contract.getModelInfo(hashHex);
+        alert(
+          "Aquest model ja està registrat a la blockchain!\n" +
+          `Nom: ${info.filename}\nVersió: ${info.version}\nDescripció: ${info.description}\nData/hora: ${info.datetime}\nAutor: ${info.author}`
         );
-
-        alert("Transacció enviada! Esperant confirmació...");
-        await tx.wait();
-        alert("Model registrat correctament a blockchain!\nTx Hash: " + tx.hash);
-      } catch (e) {
-        alert("Error enviant la transacció: " + (e.message || e));
+        return;
       }
-    };
 
-    return BUI.html`
-      <bim-panel label="BIMCoin">
-        <bim-panel-section label="Registre Model">
-          <form style="display:flex;flex-direction:column;gap:0.5rem;margin-bottom:1rem;" onsubmit="return false;">
-            <input placeholder="Nom del fitxer/Identificador"
-                   value="${formData.filename}" 
-                   @input="${onInput('filename')}" 
-                   style="padding:0.5rem;border-radius:4px;border:1px solid #ccc;">
-            <input placeholder="Versió o checksum"
-                   value="${formData.version}"
-                   @input="${onInput('version')}"
-                   style="padding:0.5rem;border-radius:4px;border:1px solid #ccc;">
-            <input placeholder="Descripció/Tipus de model"
-                   value="${formData.description}"
-                   @input="${onInput('description')}"
-                   style="padding:0.5rem;border-radius:4px;border:1px solid #ccc;">
-            <input type="datetime-local"
-                   value="${formData.datetime}"
-                   @input="${onInput('datetime')}"
-                   style="padding:0.5rem;border-radius:4px;border:1px solid #ccc;">
-          </form>
-          <bim-button label="Registrar IFC a Blockchain" @click=${registerModel}></bim-button>
+      const tx = await contract.registerModel(
+        hashHex,
+        formData.filename,
+        formData.version,
+        formData.description,
+        formData.datetime
+      );
+
+      alert("Transacció enviada! Esperant confirmació...");
+      await tx.wait();
+      lastHash = hashHex;
+      showHashBox = true;
+      panelBIMCoin.update();
+    } catch (e) {
+      alert("Error enviant la transacció: " + (e.message || e));
+    }
+  };
+
+  // --- Funcions per validar hash ---
+  const onCheckInput = (e) => {
+    checkInputHash = e.target.value.trim().toLowerCase();
+    checkInfoResult = null;
+    checkErrorMsg = "";
+    panelBIMCoin.update();
+  };
+
+  const onCheckHash = async (e) => {
+    e.preventDefault();
+    if (!checkInputHash) {
+      checkErrorMsg = "Posa un hash per validar!";
+      checkInfoResult = null;
+      panelBIMCoin.update();
+      return;
+    }
+    try {
+      const provider = new BrowserProvider(window.ethereum);
+      const contract = new Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
+      const exists = await contract.isModelRegistered(checkInputHash);
+      if (!exists) {
+        checkErrorMsg = "No registrat a la blockchain.";
+        checkInfoResult = null;
+      } else {
+        const info = await contract.getModelInfo(checkInputHash);
+        checkInfoResult = info;
+        checkErrorMsg = "";
+      }
+      panelBIMCoin.update();
+    } catch (e) {
+      checkErrorMsg = "Error consultant: " + (e.message || e);
+      checkInfoResult = null;
+      panelBIMCoin.update();
+    }
+  };
+
+  return BUI.html`
+    <bim-panel label="BIMCoin">
+      <bim-panel-section label="Registre Model">
+        <form style="display:flex;flex-direction:column;gap:0.5rem;margin-bottom:1rem;" onsubmit="return false;">
+          <input placeholder="Nom del fitxer/Identificador"
+                 value="${formData.filename}" 
+                 @input="${onInput('filename')}" 
+                 style="padding:0.5rem;border-radius:4px;border:1px solid #ccc;">
+          <input placeholder="Versió o checksum"
+                 value="${formData.version}"
+                 @input="${onInput('version')}"
+                 style="padding:0.5rem;border-radius:4px;border:1px solid #ccc;">
+          <input placeholder="Descripció/Tipus de model"
+                 value="${formData.description}"
+                 @input="${onInput('description')}"
+                 style="padding:0.5rem;border-radius:4px;border:1px solid #ccc;">
+          <input type="datetime-local"
+                 value="${formData.datetime}"
+                 @input="${onInput('datetime')}"
+                 style="padding:0.5rem;border-radius:4px;border:1px solid #ccc;">
+        </form>
+        <bim-button label="Registrar IFC a Blockchain" @click=${registerModel}></bim-button>
+
+        <!-- Caixa de hash registrat -->
+        ${showHashBox && lastHash ? BUI.html`
+          <div style="margin-top:1rem;padding:0.5rem;background:#f3f3f3;border-radius:8px;">
+            <div><strong>Hash del model registrat:</strong></div>
+            <div style="font-family:monospace;word-break:break-all;">${lastHash}</div>
+            <bim-button style="margin-top:0.5rem;" label="Copia hash" 
+              @click=${async () => {
+                await navigator.clipboard.writeText(lastHash);
+                alert("Hash copiat al porta-retalls!");
+              }}>
+            </bim-button>
+          </div>
+        ` : ""}
+
+        <!-- Validació de hash aquí mateix -->
+        <div style="margin-top:2rem;padding-top:1rem;border-top:1px solid #ddd;">
+  
+</div>
+
+      </bim-panel-section>
+    </bim-panel>
+  `;
+});
+
+  // ===============================
+  // Panell "Comprova Hash"
+  // ===============================
+  function createCheckHashPanel() {
+  let inputHash = "";
+  let infoResult = null;
+  let errorMsg = "";
+
+  const panel = document.createElement("div");
+
+  const renderPanel = () => {
+    panel.innerHTML = "";
+    // Crea el contingut com HTML real!
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = `
+      <bim-panel label="Comprova Hash">
+        <bim-panel-section label="Consulta">
+          <input placeholder="Enganxa el hash aquí"
+                 value="${inputHash}"
+                 style="padding:0.5rem;width:100%;max-width:32rem;min-width:14rem;box-sizing:border-box;border-radius:4px;border:1px solid #ccc;">
+          <bim-button label="Comprova registre" style="margin-top:0.5rem; width: 100%;"></bim-button>
+          ${errorMsg ? `<div style="color:red;margin-top:0.5rem;">${errorMsg}</div>` : ""}
+          ${infoResult ? `
+            <div style="margin-top:1rem;">
+              <strong>Nom:</strong> ${infoResult.filename}<br>
+              <strong>Versió:</strong> ${infoResult.version}<br>
+              <strong>Descripció:</strong> ${infoResult.description}<br>
+              <strong>Data/Hora:</strong> ${infoResult.datetime}<br>
+              <strong>Autor:</strong> ${infoResult.author}
+            </div>
+          ` : ""}
         </bim-panel-section>
       </bim-panel>
     `;
-  });
+    panel.appendChild(tempDiv.firstElementChild);
+
+    // Gestiona esdeveniments
+    const input = panel.querySelector("input");
+    const btn = panel.querySelector("bim-button"); // <-- ARA ÉS bim-button!
+
+    input && input.addEventListener("input", (e) => {
+      inputHash = e.target.value.trim().toLowerCase();
+      infoResult = null;
+      errorMsg = "";
+      renderPanel();
+    });
+
+    btn && btn.addEventListener("click", async (e) => {
+      e.preventDefault();
+      if (!inputHash) {
+        errorMsg = "Posa un hash per validar!";
+        infoResult = null;
+        renderPanel();
+        return;
+      }
+      try {
+        const provider = new BrowserProvider(window.ethereum);
+        const contract = new Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
+        const exists = await contract.isModelRegistered(inputHash);
+        if (!exists) {
+          errorMsg = "No registrat a la blockchain.";
+          infoResult = null;
+        } else {
+          const info = await contract.getModelInfo(inputHash);
+          infoResult = info;
+          errorMsg = "";
+        }
+        renderPanel();
+      } catch (e) {
+        errorMsg = "Error consultant: " + (e.message || e);
+        infoResult = null;
+        renderPanel();
+      }
+    });
+  };
+
+  renderPanel();
+  return panel;
+}
+
 
   // ===============================
   // Panell Lateral amb Pestanyes (TABS)
@@ -345,7 +488,8 @@ async function main() {
     { key: 'relations', label: 'Relacions', panel: panelRelations },
     { key: 'classifications', label: 'Classificacions', panel: panelClassifications },
     { key: 'properties', label: 'Propietats', panel: panelProperties },
-    { key: 'bimcoin', label: 'BIMCoin', panel: panelBIMCoin },
+    { key: 'bimcoin', label: 'Registrar IFC a BlockChain', panel: panelBIMCoin },
+    { key: 'checkhash', label: 'Comprova Hash', panel: createCheckHashPanel() }
   ];
   let activeTab = 'ifc';
 
@@ -389,7 +533,7 @@ async function main() {
     main: {
       template: `
         "panel viewport"
-        / 30rem 1fr
+        / 40rem 1fr
       `,
       elements: {
         panel: panelTabsContainer,
@@ -418,7 +562,3 @@ async function main() {
 }
 
 main();
-
-
-
-
