@@ -4,14 +4,17 @@ import * as OBCF from "@thatopen/components-front";
 import * as BUIC from "@thatopen/ui-obc";
 import { BrowserProvider, Contract } from "ethers";
 
+let components, world;
+let loadedModel = null;
+
 async function main() {
   // Inicialitza la UI
   BUI.Manager.init();
 
-  const components = new OBC.Components();
+  components = new OBC.Components();
   const worlds = components.get(OBC.Worlds);
 
-  const world = worlds.create();
+  world = worlds.create();
   const sceneComponent = new OBC.SimpleScene(components);
   sceneComponent.setup();
   world.scene = sceneComponent;
@@ -46,13 +49,9 @@ async function main() {
   inputFile.style.display = 'none';
   document.body.appendChild(inputFile);
 
-  inputFile.addEventListener('change', async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const arrayBuffer = await file.arrayBuffer();
-    currentIFCBuffer = arrayBuffer;
-    await ifcLoader.load(new Uint8Array(arrayBuffer));
-  });
+  
+
+  
 
   // Afegir model a escena
   const fragmentsManager = components.get(OBC.FragmentsManager);
@@ -72,6 +71,18 @@ async function main() {
         </bim-panel-section>
       </bim-panel>
     `;
+  });
+  inputFile.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const arrayBuffer = await file.arrayBuffer();
+    currentIFCBuffer = arrayBuffer;
+    const model = await ifcLoader.load(new Uint8Array(arrayBuffer));
+    console.log("DEBUG | Model carregat:", model);
+    console.log("DEBUG | Model retornat pel loader:", model);
+    console.log("DEBUG | model.ifcManager:", model.ifcManager);
+    loadedModel = model;
+    await addPlansPanel(model);
   });
 
   // --- Panell relacions ---
@@ -276,6 +287,7 @@ panelBIMCoin = BUI.Component.create(() => {
     const hashBuffer = await crypto.subtle.digest('SHA-256', currentIFCBuffer);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('').toLowerCase();
+    console.log("Hash generat per aquest model IFC:", hashHex);
 
     if (!window.ethereum) {
       alert("Instal·la MetaMask primer!");
@@ -562,3 +574,85 @@ panelBIMCoin = BUI.Component.create(() => {
 }
 
 main();
+async function addPlansPanel(model) {
+  // Elimina el panell anterior si ja existeix!
+  const oldPanel = document.getElementById('plans-panel');
+  if (oldPanel) oldPanel.remove();
+
+  // PROVA de debugar: mostra les propietats del model
+  console.log("DEBUG | Model carregat:", model);
+  console.log("DEBUG | model.items:", model.items);
+  console.log("DEBUG | model.children:", model.children);
+
+  // PROVA DE GENERAR PLANS (com s'ha de fer modernament)
+  
+  
+
+  try {
+    await plans.generate(model);
+    console.log("DEBUG | Plans generats:", plans.list);
+
+    if (!plans.list || plans.list.length === 0) {
+      alert("El model IFC s'ha carregat però NO s'han trobat plantes (storeys).");
+      return;
+    }
+  } catch (e) {
+    alert("No s'ha pogut generar els plànols per aquest model IFC. Potser la seva estructura no conté plantes o la jerarquia no és correcta.");
+    return;
+  }
+  // ===== FI NOVA PART =====
+
+  // PROVA DE GENERAR PLANS (pot fallar)
+  const plans = components.get(OBCF.Plans);
+  plans.world = world;
+
+  try {
+    await plans.generate(model);
+  } catch (e) {
+    alert("No s'ha pogut generar els plànols per aquest model IFC. Potser la seva estructura no conté plantes o la jerarquia no és correcta.");
+    return;
+  }
+
+  const classifier = components.get(OBC.Classifier);
+  const highlighter = components.get(OBCF.Highlighter);
+  const cullers = components.get(OBC.Cullers);
+  const culler = cullers.create(world);
+
+  const modelItems = classifier.find({ models: [model.uuid] });
+
+  // Panel UI
+  const panel = BUI.Component.create(() => {
+    return BUI.html`
+      <bim-panel id="plans-panel" label="Plans IFC" style="max-width: 32rem;">
+        <bim-panel-section label="Plantes IFC">
+          ${plans.list.map(plan => BUI.html`
+            <bim-button label=${plan.name} @click=${() => {
+              // Navega a la planta
+              world.renderer.postproduction.customEffects.minGloss = 0.1;
+              highlighter.backupColor = new THREE.Color("white");
+              classifier.setColor(modelItems, new THREE.Color("white"));
+              world.scene.three.background = new THREE.Color("white");
+              plans.goTo(plan.id);
+              culler.needsUpdate = true;
+            }}></bim-button>
+          `)}
+          <bim-button label="Torna a 3D" style="margin-top:1rem;"
+            @click=${() => {
+              highlighter.backupColor = null;
+              highlighter.clear();
+              world.renderer.postproduction.customEffects.minGloss = 0.3;
+              classifier.resetColor(modelItems);
+              world.scene.three.background = null;
+              plans.exitPlanView();
+              culler.needsUpdate = true;
+            }}>
+          </bim-button>
+        </bim-panel-section>
+      </bim-panel>
+    `;
+  });
+
+  // Col·loca el panel a la pàgina (al body o on vulguis)
+  document.body.append(panel);
+}
+

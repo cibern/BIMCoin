@@ -1,138 +1,842 @@
 <!DOCTYPE html>
 <html lang="ca">
-  <head>
-    <meta charset="UTF-8" />
-    <title>BCF BIM Viewer</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+  <meta charset="UTF-8">
+  <title>Autenticació BIM IFC a Blockchain</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+      margin: 0; padding: 0;
+      background: #f6f8fa;
+      color: #232b38;
+    }
+    header {
+      background: linear-gradient(90deg, #124c8d 0%, #3496e2 100%);
+      color: #fff;
+      padding: 2.4rem 0 2rem 0;
+      text-align: center;
+      box-shadow: 0 3px 12px rgba(27,77,145,0.07);
+      position: relative;
+    }
+    .logo-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 1.2rem;
+      gap: 1.3em;
+    }
+    .logo-svg {
+      width: 56px; height: 56px;
+      background: #fff; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      border: 2.5px solid #3496e2;
+      box-shadow: 0 4px 22px #124c8d23;
+    }
+    .logo-title {
+      font-weight: 700;
+      font-size: 2.1rem;
+      color: #fff;
+      letter-spacing: 0.03em;
+      margin-left: 0.1em;
+      text-shadow: 0 2px 10px #19518635;
+    }
+    #lang-selector {
+      position: absolute;
+      top: 24px; right: 30px;
+      padding: 0.32em 1.2em;
+      border-radius: 6px;
+      background: #fff;
+      color: #124c8d;
+      border: none;
+      font-size: 1em;
+      box-shadow: 0 2px 10px #124c8d19;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    main {
+      max-width: 880px;
+      margin: 2.5rem auto 2rem auto;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 22px rgba(27,77,145,0.11);
+      padding: 2.6rem 2rem 2.5rem 2rem;
+    }
+    h2 {
+      color: #195186;
+      margin-top: 1.5em;
+      margin-bottom: 0.9em;
+      font-size: 1.32rem;
+      letter-spacing: 0.01em;
+    }
+    ul, ol {
+      margin-left: 1.3em;
+    }
+    .cta {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 2.7em 0 1.7em 0;
+      padding: 2em 0 1.5em 0;
+      border-top: 1px solid #e4eaf2;
+      border-bottom: 1px solid #e4eaf2;
+      background: #f4f8fc;
+      border-radius: 10px;
+    }
+    .cta a {
+      font-size: 1.15em;
+      color: #fff;
+      background: #195186;
+      padding: 0.85em 2.1em;
+      border-radius: 6px;
+      text-decoration: none;
+      box-shadow: 0 2px 10px #19518618;
+      margin-top: 0.6em;
+      transition: background 0.15s;
+      font-weight: 500;
+    }
+    .cta a:hover {
+      background: #2379ca;
+    }
+    .faq {
+      margin-top: 2.5em;
+      margin-bottom: 1em;
+    }
+    .faq h2 {
+      margin-bottom: 0.7em;
+    }
+    .faq-item {
+      margin-bottom: 1.3em;
+      padding: 1em 1.2em 0.5em 1.2em;
+      border-radius: 8px;
+      background: #f7fbfe;
+      box-shadow: 0 1px 8px #3496e211;
+    }
+    .faq-q {
+      font-weight: 600;
+      color: #165294;
+      margin-bottom: 0.22em;
+    }
+    .faq-a {
+      color: #234;
+      margin-left: 0.18em;
+    }
+    footer {
+      text-align: center;
+      font-size: 1em;
+      color: #888;
+      padding: 2.5em 0 1em 0;
+    }
+    @media (max-width: 600px) {
+      main { padding: 1.1rem 0.3rem 1.2rem 0.3rem; }
+      header { padding: 1.2rem 0 1.1rem 0; }
+      #lang-selector { top: 16px; right: 8px; }
+      .logo-title { font-size: 1.3rem; }
+    }
 
-    <!-- Estils necessaris -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@thatopen/ui@latest/dist/default.css" />
-    <link rel="icon" href="data:,">
-    <!-- Afegeix Inter (moderna i clara) -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-
-
-    <!-- Script principal -->
-    <script type="module" src="/src/main.js"></script>
-
-<style>
-  html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    width: 100%;
-    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
-    background: #fafaff;
-    color: #26283b;
-  }
-
-  bim-grid {
-    width: 100vw;
-    height: 100vh;
-    display: grid;
-    grid-template-columns: 30rem 1fr;
-    grid-template-areas: "panel viewport";
-    grid-template-rows: 1fr;
-    background: #fafaff;
-  }
-
-  .panel-tabs-container {
-    height: 100vh;
-    max-height: 100vh;
-    overflow-y: auto;
-    min-width: 0;
-    background: #f8f9fb;
-    border-right: 1px solid #e3e3e9;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 2px 0 6px rgba(50, 50, 50, 0.04);
-  }
-
-  .panel-tabs-bar {
-    display: flex;
-    border-bottom: 1px solid #e3e3e9;
-    background: #f3f6fa;
-    padding: 0;
-    position: sticky;
-    top: 0;
-    z-index: 5;
-  }
-  .panel-tabs-bar button {
-    background: none;
-    border: none;
-    outline: none;
-    padding: 0.4rem 0.8rem;
-    font-weight: 500;
-    font-size: 0.95rem;
-    cursor: pointer;
-    color: #5c5e72;
-    border-bottom: 2px solid transparent;
-    transition: background 0.2s, border-bottom 0.2s, color 0.2s;
-    letter-spacing: 0;
+    /* Timeline steps (pots posar-ho al final del teu <style>!) */
+.timeline-section {
+  margin: 2.5em 0 2em 0;
+  padding: 0 0.5em;
 }
-.panel-tabs-bar button.active {
-    color: #007bff;
-    border-bottom: 2px solid #007bff;
-    background: #f8fafe;
+.timeline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.6em;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin: 0 auto;
+  max-width: 760px;
+  position: relative;
+}
+.timeline-step {
+  background: #f4faff;
+  border-radius: 18px;
+  padding: 1.4em 1.1em 1.1em 1.1em;
+  box-shadow: 0 3px 18px #124c8d13;
+  min-width: 140px;
+  flex: 1 1 170px;
+  text-align: center;
+  position: relative;
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+}
+.timeline-step:hover {
+  transform: translateY(-6px) scale(1.035);
+  box-shadow: 0 8px 32px #124c8d24;
+  background: #e0f3fa;
+}
+.timeline-step .step-number {
+  display: inline-block;
+  background: linear-gradient(90deg, #124c8d 60%, #27e8c5 100%);
+  color: #fff;
+  font-size: 1.25em;
+  width: 2.2em;
+  height: 2.2em;
+  border-radius: 50%;
+  line-height: 2.2em;
+  font-weight: 700;
+  margin-bottom: 0.7em;
+  box-shadow: 0 2px 8px #19518617;
+}
+.timeline-step .step-icon {
+  font-size: 2.3em;
+  margin-bottom: 0.35em;
+  color: #124c8d;
+  display: block;
+}
+.timeline-connector {
+  width: 36px;
+  height: 4px;
+  background: linear-gradient(90deg, #27e8c5 0%, #124c8d 100%);
+  border-radius: 3px;
+  position: absolute;
+  left: 50%; top: 37px;
+  z-index: 0;
+  transform: translateX(13px);
+  pointer-events: none;
+  opacity: 0.6;
+}
+@media (max-width: 780px) {
+  .timeline { flex-direction: column; align-items: stretch; }
+  .timeline-connector { display: none; }
 }
 
-  .panel-tabs-content {
-    flex: 1 1 auto;
-    overflow-y: auto;
-    padding: 1rem 0.5rem;
-    min-height: 0;
-    scrollbar-width: thin;
-    scrollbar-color: #b9bbcc #e8e9ef;
-  }
-  .panel-tabs-content::-webkit-scrollbar {
-    width: 8px;
-    background: #eee;
-  }
-  .panel-tabs-content::-webkit-scrollbar-thumb {
-    background: #b9bbcc;
-    border-radius: 8px;
-  }
+  </style>
+</head>
+<body>
+  <canvas id="bgNetwork"
+  style="position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:-1;pointer-events:none;opacity:0.14;"></canvas>
+<script>
+const NODE_COUNT = 32;
+const LINK_DISTANCE = 290;
+const RADIUS_MIN = 4, RADIUS_MAX = 12;
+const COLORS = ['#3496e2', '#124c8d', '#195186', '#2379ca'];
+const nodes = [];
+const links = [];
 
-  bim-viewport {
-    grid-area: viewport;
-    width: 100%;
-    height: 100%;
-    display: block;
-    background-color: #f0f2f7;
-  }
+function rand(min, max) { return min + Math.random() * (max - min); }
 
-  @media (max-width: 768px) {
-    bim-grid {
-      grid-template-columns: 1fr;
-      grid-template-areas:
-        "panel"
-        "viewport";
-      grid-template-rows: auto 1fr;
+function resizeCanvas() {
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = window.innerWidth * dpr;
+  canvas.height = window.innerHeight * dpr;
+  canvas.style.width = window.innerWidth + "px";
+  canvas.style.height = window.innerHeight + "px";
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+
+function createNodes() {
+  nodes.length = 0;
+  for (let i = 0; i < NODE_COUNT; i++) {
+    // Nodes tenen posició inicial i es mouen al voltant
+    const x0 = rand(0, window.innerWidth);
+    const y0 = rand(0, window.innerHeight);
+    nodes.push({
+      x0, y0, // punt inicial
+      x: x0, y: y0, // posició actual
+      r: rand(RADIUS_MIN, RADIUS_MAX),
+      c: COLORS[Math.floor(rand(0, COLORS.length))],
+      t: rand(0, 1000), // temps desfasat
+      amp: rand(18, 60) // amplitud de moviment
+    });
+  }
+}
+
+function createLinks() {
+  links.length = 0;
+  for (let i = 0; i < NODE_COUNT; i++) {
+    for (let j = i + 1; j < NODE_COUNT; j++) {
+      const dx = nodes[i].x - nodes[j].x;
+      const dy = nodes[i].y - nodes[j].y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < LINK_DISTANCE) {
+        links.push([i, j]);
+      }
     }
-
-    .panel-tabs-container {
-      border-right: none;
-      border-bottom: 1px solid #e3e3e9;
-      height: 40vh;
-      max-height: 45vh;
-    }
-    bim-viewport {
-      height: 60vh;
-    }
   }
-</style>
+}
+
+function animate() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const time = performance.now() * 0.0005;
+
+  // Nodes fluctuen suaument al voltant del seu punt inicial
+  for (const n of nodes) {
+    n.x = n.x0 + Math.sin(time + n.t) * n.amp * 0.8 + Math.cos(time * 0.9 + n.t) * n.amp * 0.5;
+    n.y = n.y0 + Math.cos(time + n.t * 0.8) * n.amp * 0.6 + Math.sin(time * 0.8 + n.t * 0.9) * n.amp * 0.5;
+
+    // Si algun node se'n va massa, torna al centre de la pantalla (opcional)
+    if (n.x < -60 || n.x > window.innerWidth + 60) n.x0 = rand(0, window.innerWidth);
+    if (n.y < -60 || n.y > window.innerHeight + 60) n.y0 = rand(0, window.innerHeight);
+  }
+
+  createLinks();
+
+  // Dibuixa línies
+  ctx.save();
+  ctx.globalAlpha = 0.34;
+  for (const [a, b] of links) {
+    ctx.strokeStyle = "#2379ca";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(nodes[a].x, nodes[a].y);
+    ctx.lineTo(nodes[b].x, nodes[b].y);
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  // Dibuixa nodes
+  for (const n of nodes) {
+    ctx.beginPath();
+    ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+    ctx.fillStyle = n.c;
+    ctx.globalAlpha = 0.92;
+    ctx.shadowBlur = 5;
+    ctx.shadowColor = n.c;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+  ctx.globalAlpha = 1;
+  requestAnimationFrame(animate);
+}
+
+const canvas = document.getElementById("bgNetwork");
+const ctx = canvas.getContext("2d");
+
+window.addEventListener("resize", () => {
+  resizeCanvas();
+  createNodes();
+  createLinks();
+});
+resizeCanvas();
+createNodes();
+createLinks();
+animate();
+</script>
 
 
 
-  </head>
-  <body>
-    <!-- Contenidor principal de l'aplicació -->
-    <!--<bim-grid id="app"></bim-grid> -->
-
-  <div id="container">
-    
+  <header>
+    <select id="lang-selector">
+      <option value="ca">Català</option>
+      <option value="es">Español</option>
+      <option value="en">English</option>
+      <option value="fr">Français</option>
+      <option value="it">Italiano</option>
+      <option value="de">Deutsch</option>
+    </select>
+    <div class="logo-container">
+      <div class="logo-svg">
+        <!-- LOGO SVG -->
+        <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
+          <rect x="2" y="2" width="40" height="40" rx="11" fill="#3496e2" stroke="#fff" stroke-width="3"/>
+          <path d="M14 28L22 14L30 28H14Z" fill="#fff" stroke="#124c8d" stroke-width="2"/>
+        </svg>
+      </div>
+      <span class="logo-title" id="logo-title">Autoria BIM-Blockchain</span>
+    </div>
+    <p id="subtitle">
+      Protegeix la propietat intel·lectual i la validesa dels teus models BIM (IFC) amb registre a la blockchain.<br>
+      Solució per arquitectes, enginyers i promotors.
+    </p>
+  </header>
+  <main>
+    <h2 id="why-title">Per què autentificar models IFC a la blockchain?</h2>
+    <ul id="why-list">
+      <!-- List dynamically injected -->
+    </ul>
+    <h2 id="how-title">Com funciona?</h2>
+    <ol id="how-list">
+      <!-- List dynamically injected -->
+    </ol>
+    <div class="cta">
+      <div style="font-size:1.15em; margin-bottom: 0.7em;" id="cta-desc">Prova-ho ara mateix:</div>
+      <a id="cta-link" href="visor.html">Obre el visor i registra el teu IFC</a>
+      <div style="margin-top:1.2em; color:#2379ca; font-size:0.95em;" id="cta-help">
+        El visor et permet veure el model i registrar-lo en pocs segons.<br>
+        Només necessites MetaMask i el teu arxiu IFC.
+      </div>
+    </div>
+    <h2 id="who-title">Qui pot utilitzar-ho?</h2>
+    <ul id="who-list">
+      <!-- List dynamically injected -->
+    </ul>
+    <h2 id="adv-title">Avantatges respecte el sistema tradicional</h2>
+    <ul id="adv-list">
+      <!-- List dynamically injected -->
+    </ul>
+     <section class="timeline-section">
+  <h2 style="margin-bottom: 1.3em; color:#124c8d;">Procés pas a pas</h2>
+  <div class="timeline">
+    <div class="timeline-step">
+      <span class="step-number">1</span>
+      <span class="step-icon">📤</span>
+      <div>Puja el teu arxiu IFC</div>
+    </div>
+    <div class="timeline-connector"></div>
+    <div class="timeline-step">
+      <span class="step-number">2</span>
+      <span class="step-icon">🧮</span>
+      <div>El sistema calcula el <b>hash</b> únic</div>
+    </div>
+    <div class="timeline-connector"></div>
+    <div class="timeline-step">
+      <span class="step-number">3</span>
+      <span class="step-icon">🔗</span>
+      <div>Registra’l a la <b>blockchain</b> (MetaMask)</div>
+    </div>
+    <div class="timeline-connector"></div>
+    <div class="timeline-step">
+      <span class="step-number">4</span>
+      <span class="step-icon">✅</span>
+      <div>Verifica i consulta l’autoria!</div>
+    </div>
   </div>
+</section>
+    <section class="faq">
+      <h2 id="faq-title">Dubtes freqüents</h2>
+      <div id="faq-list">
+        <!-- FAQ dynamically injected -->
+      </div>
+    </section>
+  </main>
+  <footer>
+    &copy; 2025 Autoria BIM-Blockchain — Projecte en desenvolupament. |
+    <a href="mailto:contacte@autoriabim.com" style="color:#195186;text-decoration:underline;" id="contact-link">Contacta'ns</a>
+  </footer>
+  <script>
+    const translations = {
+      ca: {
+        logo: "Autoria BIM-Blockchain",
+        subtitle: "Protegeix la propietat intel·lectual i la validesa dels teus models BIM (IFC) amb registre a la blockchain.<br>Solució per arquitectes, enginyers i promotors.",
+        whyTitle: "Per què autentificar models IFC a la blockchain?",
+        whyList: [
+          "<strong>Evidència d'autoria:</strong> El model queda associat al seu autor i la data de registre, sense possibilitat de manipulació.",
+          "<strong>Evita còpies il·legals:</strong> Pots demostrar qui va crear i va lliurar el model en cada moment.",
+          "<strong>Traçabilitat i versions:</strong> Cada registre de model (o revisió) queda identificat de manera única.",
+          "<strong>Reconeixement internacional:</strong> Els certificats digitals a la blockchain tenen validesa mundial.",
+          "<strong>Transparència i confiança:</strong> Genera confiança amb promotors, constructores i clients finals."
+        ],
+        howTitle: "Com funciona?",
+        howList: [
+          "Puja el teu arxiu IFC al nostre visor web.",
+          "Calcula automàticament el seu identificador únic (hash).",
+          "Registra el model a la blockchain Ethereum (via MetaMask).",
+          "Consulta, verifica i valida models en qualsevol moment!"
+        ],
+        ctaDesc: "Prova-ho ara mateix:",
+        ctaBtn: "Obre el visor i registra el teu IFC",
+        ctaHelp: "El visor et permet veure el model i registrar-lo en pocs segons.<br>Només necessites MetaMask i el teu arxiu IFC.",
+        whoTitle: "Qui pot utilitzar-ho?",
+        whoList: [
+          "Arquitectes, enginyers i despatxos professionals.",
+          "Promotors i gestors de projectes.",
+          "Clients que volen verificar l'autenticitat d'un projecte BIM.",
+          "Qualsevol persona que necessiti una prova d’autoria digital i traçable."
+        ],
+        advTitle: "Avantatges respecte el sistema tradicional",
+        advList: [
+          "No depèn d'una entitat central: la blockchain és pública i transparent.",
+          "Màxima seguretat: només l'autor pot registrar el seu model.",
+          "Consulta 24/7 i des de qualsevol lloc del món.",
+          "Pot ser base per sistemes de pagament, certificació o traçabilitat en el futur."
+        ],
+        faqTitle: "Dubtes freqüents",
+        faq: [
+          {
+            q: "És confidencial?",
+            a: "El contingut del model no es publica, només l'identificador i metadades."
+          },
+          {
+            q: "Què passa si algú registra el meu model?",
+            a: "Només el primer registre queda a la blockchain; pots demostrar-ho sempre amb el teu fitxer."
+          },
+          {
+            q: "Puc registrar revisions?",
+            a: "Sí, cada canvi genera un hash diferent i pots registrar múltiples versions."
+          },
+          {
+            q: "Funciona amb qualsevol IFC?",
+            a: "Sí, sempre que sigui un arxiu estàndard IFC2x3 o IFC4."
+          },
+          {
+            q: "Necessito tenir criptomonedes?",
+            a: "Només cal MetaMask. Les transaccions es poden fer en la xarxa de proves per no gastar diners reals."
+          },
+          {
+            q: "Com puc validar un model rebut?",
+            a: "Utilitza la funció de consulta per enganxar el hash i veure si ja està registrat a la blockchain."
+          }
+        ],
+        contact: "Contacta'ns"
+      },
+      es: {
+        logo: "Autoría BIM-Blockchain",
+        subtitle: "Protege la propiedad intelectual y la validez de tus modelos BIM (IFC) registrándolos en blockchain.<br>Solución para arquitectos, ingenieros y promotores.",
+        whyTitle: "¿Por qué autenticar modelos IFC en la blockchain?",
+        whyList: [
+          "<strong>Evidencia de autoría:</strong> El modelo queda asociado a su autor y fecha de registro, sin posibilidad de manipulación.",
+          "<strong>Evita copias ilegales:</strong> Puedes demostrar quién creó y entregó el modelo en cada momento.",
+          "<strong>Trazabilidad y versiones:</strong> Cada registro (o revisión) queda identificado de forma única.",
+          "<strong>Reconocimiento internacional:</strong> Los certificados digitales en blockchain tienen validez mundial.",
+          "<strong>Transparencia y confianza:</strong> Genera confianza con promotores, constructoras y clientes finales."
+        ],
+        howTitle: "¿Cómo funciona?",
+        howList: [
+          "Sube tu archivo IFC en nuestro visor web.",
+          "Calcula automáticamente su identificador único (hash).",
+          "Registra el modelo en la blockchain Ethereum (vía MetaMask).",
+          "¡Consulta, verifica y valida modelos en cualquier momento!"
+        ],
+        ctaDesc: "Pruébalo ahora:",
+        ctaBtn: "Abre el visor y registra tu IFC",
+        ctaHelp: "El visor te permite ver el modelo y registrarlo en segundos.<br>Sólo necesitas MetaMask y tu archivo IFC.",
+        whoTitle: "¿Quién puede utilizarlo?",
+        whoList: [
+          "Arquitectos, ingenieros y despachos profesionales.",
+          "Promotores y gestores de proyectos.",
+          "Clientes que deseen verificar la autenticidad de un proyecto BIM.",
+          "Cualquier persona que necesite una prueba de autoría digital y trazable."
+        ],
+        advTitle: "Ventajas respecto al sistema tradicional",
+        advList: [
+          "No depende de una entidad central: la blockchain es pública y transparente.",
+          "Máxima seguridad: sólo el autor puede registrar su modelo.",
+          "Consulta 24/7 y desde cualquier lugar del mundo.",
+          "Puede ser la base de sistemas de pago, certificación o trazabilidad en el futuro."
+        ],
+        faqTitle: "Preguntas frecuentes",
+        faq: [
+          {
+            q: "¿Es confidencial?",
+            a: "El contenido del modelo no se publica, sólo el identificador y los metadatos."
+          },
+          {
+            q: "¿Qué pasa si alguien registra mi modelo?",
+            a: "Sólo el primer registro queda en la blockchain; siempre puedes demostrarlo con tu archivo."
+          },
+          {
+            q: "¿Puedo registrar revisiones?",
+            a: "Sí, cada cambio genera un hash diferente y puedes registrar múltiples versiones."
+          },
+          {
+            q: "¿Funciona con cualquier IFC?",
+            a: "Sí, siempre que sea un archivo estándar IFC2x3 o IFC4."
+          },
+          {
+            q: "¿Necesito criptomonedas?",
+            a: "Sólo necesitas MetaMask. Las transacciones pueden hacerse en la red de pruebas sin gastar dinero real."
+          },
+          {
+            q: "¿Cómo valido un modelo recibido?",
+            a: "Utiliza la función de consulta para pegar el hash y comprobar si está registrado en la blockchain."
+          }
+        ],
+        contact: "Contáctanos"
+      },
+      en: {
+        logo: "BIM Blockchain Authorship",
+        subtitle: "Protect your intellectual property and the validity of your BIM (IFC) models by registering them on the blockchain.<br>Solution for architects, engineers and developers.",
+        whyTitle: "Why authenticate IFC models on the blockchain?",
+        whyList: [
+          "<strong>Proof of authorship:</strong> The model is linked to its author and timestamp, with no possibility of manipulation.",
+          "<strong>Prevent illegal copies:</strong> You can prove who created and delivered the model at any time.",
+          "<strong>Traceability and versions:</strong> Each registered model (or revision) is uniquely identified.",
+          "<strong>International recognition:</strong> Blockchain digital certificates are globally valid.",
+          "<strong>Transparency and trust:</strong> Builds trust with clients, developers and contractors."
+        ],
+        howTitle: "How does it work?",
+        howList: [
+          "Upload your IFC file in our web viewer.",
+          "The system automatically calculates its unique identifier (hash).",
+          "Register the model on the Ethereum blockchain (via MetaMask).",
+          "Consult, verify and validate models at any time!"
+        ],
+        ctaDesc: "Try it now:",
+        ctaBtn: "Open the viewer and register your IFC",
+        ctaHelp: "The viewer lets you view and register the model in seconds.<br>Just use MetaMask and your IFC file.",
+        whoTitle: "Who can use it?",
+        whoList: [
+          "Architects, engineers and professional firms.",
+          "Developers and project managers.",
+          "Clients who want to verify the authenticity of a BIM project.",
+          "Anyone needing digital, traceable proof of authorship."
+        ],
+        advTitle: "Advantages over the traditional system",
+        advList: [
+          "Does not depend on a central authority: blockchain is public and transparent.",
+          "Maximum security: only the author can register their model.",
+          "24/7 access from anywhere in the world.",
+          "Can become the basis for payment, certification or traceability systems."
+        ],
+        faqTitle: "Frequently Asked Questions",
+        faq: [
+          {
+            q: "Is it confidential?",
+            a: "The model content is not published, only its identifier and metadata."
+          },
+          {
+            q: "What if someone else registers my model?",
+            a: "Only the first registration remains on the blockchain; you can always prove ownership with your file."
+          },
+          {
+            q: "Can I register revisions?",
+            a: "Yes, each change generates a different hash and you can register multiple versions."
+          },
+          {
+            q: "Does it work with any IFC?",
+            a: "Yes, as long as it is a standard IFC2x3 or IFC4 file."
+          },
+          {
+            q: "Do I need cryptocurrencies?",
+            a: "Only MetaMask is needed. You can use the test network for transactions with no real money."
+          },
+          {
+            q: "How do I validate a received model?",
+            a: "Use the verification feature to paste the hash and check if it is registered on the blockchain."
+          }
+        ],
+        contact: "Contact us"
+      },
+      fr: {
+        logo: "Auteurs BIM-Blockchain",
+        subtitle: "Protégez la propriété intellectuelle et la validité de vos modèles BIM (IFC) grâce à l'enregistrement sur la blockchain.<br>Solution pour architectes, ingénieurs et promoteurs.",
+        whyTitle: "Pourquoi authentifier les modèles IFC sur la blockchain ?",
+        whyList: [
+          "<strong>Preuve d'auteur :</strong> Le modèle est lié à son auteur et à la date d'enregistrement, sans possibilité de manipulation.",
+          "<strong>Évite les copies illégales :</strong> Vous pouvez prouver qui a créé et livré le modèle à tout moment.",
+          "<strong>Traçabilité et versions :</strong> Chaque modèle (ou révision) enregistré est identifié de façon unique.",
+          "<strong>Reconnaissance internationale :</strong> Les certificats numériques blockchain sont valables mondialement.",
+          "<strong>Transparence et confiance :</strong> Renforce la confiance avec promoteurs, clients et constructeurs."
+        ],
+        howTitle: "Comment ça marche ?",
+        howList: [
+          "Téléchargez votre fichier IFC sur notre visionneuse web.",
+          "Le système calcule automatiquement son identifiant unique (hash).",
+          "Enregistrez le modèle sur la blockchain Ethereum (via MetaMask).",
+          "Consultez, vérifiez et validez les modèles à tout moment !"
+        ],
+        ctaDesc: "Essayez maintenant :",
+        ctaBtn: "Ouvrir le visualiseur et enregistrer votre IFC",
+        ctaHelp: "Le visualiseur vous permet de voir et d'enregistrer le modèle en quelques secondes.<br>Il vous suffit d'utiliser MetaMask et votre fichier IFC.",
+        whoTitle: "Qui peut l'utiliser ?",
+        whoList: [
+          "Architectes, ingénieurs et bureaux d'études.",
+          "Promoteurs et gestionnaires de projets.",
+          "Clients souhaitant vérifier l'authenticité d'un projet BIM.",
+          "Toute personne ayant besoin d'une preuve d'auteur numérique et traçable."
+        ],
+        advTitle: "Avantages par rapport au système traditionnel",
+        advList: [
+          "Ne dépend pas d'une autorité centrale : la blockchain est publique et transparente.",
+          "Sécurité maximale : seul l'auteur peut enregistrer son modèle.",
+          "Consultation 24h/24 et partout dans le monde.",
+          "Peut servir de base à des systèmes de paiement, de certification ou de traçabilité."
+        ],
+        faqTitle: "FAQ",
+        faq: [
+          {
+            q: "Est-ce confidentiel ?",
+            a: "Le contenu du modèle n'est pas publié, seulement l'identifiant et les métadonnées."
+          },
+          {
+            q: "Et si quelqu'un enregistre mon modèle ?",
+            a: "Seul le premier enregistrement reste sur la blockchain ; vous pouvez toujours le prouver avec votre fichier."
+          },
+          {
+            q: "Puis-je enregistrer des révisions ?",
+            a: "Oui, chaque modification génère un hash différent et vous pouvez enregistrer plusieurs versions."
+          },
+          {
+            q: "Compatible avec tous les IFC ?",
+            a: "Oui, tant que c'est un fichier standard IFC2x3 ou IFC4."
+          },
+          {
+            q: "Faut-il de la crypto ?",
+            a: "Seul MetaMask est nécessaire. Les transactions peuvent se faire sur le réseau de test gratuitement."
+          },
+          {
+            q: "Comment valider un modèle reçu ?",
+            a: "Utilisez la fonction de vérification pour coller le hash et vérifier l'enregistrement sur la blockchain."
+          }
+        ],
+        contact: "Contactez-nous"
+      },
+      it: {
+        logo: "Autore BIM-Blockchain",
+        subtitle: "Proteggi la proprietà intellettuale e la validità dei tuoi modelli BIM (IFC) con la registrazione su blockchain.<br>Soluzione per architetti, ingegneri e promotori.",
+        whyTitle: "Perché autenticare modelli IFC sulla blockchain?",
+        whyList: [
+          "<strong>Prova di paternità:</strong> Il modello è associato all'autore e alla data di registrazione, senza possibilità di manipolazione.",
+          "<strong>Evita copie illegali:</strong> Puoi dimostrare chi ha creato e consegnato il modello in ogni momento.",
+          "<strong>Tracciabilità e versioni:</strong> Ogni modello (o revisione) registrato è identificato in modo univoco.",
+          "<strong>Riconoscimento internazionale:</strong> I certificati digitali sulla blockchain sono validi in tutto il mondo.",
+          "<strong>Trasparenza e fiducia:</strong> Costruisce fiducia con clienti, promotori e costruttori."
+        ],
+        howTitle: "Come funziona?",
+        howList: [
+          "Carica il tuo file IFC nel nostro visualizzatore web.",
+          "Il sistema calcola automaticamente il suo identificatore unico (hash).",
+          "Registra il modello sulla blockchain Ethereum (tramite MetaMask).",
+          "Consulta, verifica e valida i modelli in qualsiasi momento!"
+        ],
+        ctaDesc: "Provalo ora:",
+        ctaBtn: "Apri il visualizzatore e registra il tuo IFC",
+        ctaHelp: "Il visualizzatore ti permette di vedere e registrare il modello in pochi secondi.<br>Basta MetaMask e il tuo file IFC.",
+        whoTitle: "Chi può usarlo?",
+        whoList: [
+          "Architetti, ingegneri e studi professionali.",
+          "Promotori e project manager.",
+          "Clienti che desiderano verificare l'autenticità di un progetto BIM.",
+          "Chiunque necessiti di una prova digitale e tracciabile di paternità."
+        ],
+        advTitle: "Vantaggi rispetto al sistema tradizionale",
+        advList: [
+          "Non dipende da un'autorità centrale: la blockchain è pubblica e trasparente.",
+          "Massima sicurezza: solo l'autore può registrare il proprio modello.",
+          "Consultazione 24/7 da qualsiasi parte del mondo.",
+          "Può essere la base per sistemi di pagamento, certificazione o tracciabilità."
+        ],
+        faqTitle: "Domande frequenti",
+        faq: [
+          {
+            q: "È confidenziale?",
+            a: "Il contenuto del modello non viene pubblicato, solo l'identificatore e i metadati."
+          },
+          {
+            q: "Cosa succede se qualcuno registra il mio modello?",
+            a: "Solo la prima registrazione rimane sulla blockchain; puoi sempre dimostrarlo con il tuo file."
+          },
+          {
+            q: "Posso registrare revisioni?",
+            a: "Sì, ogni modifica genera un hash diverso e puoi registrare più versioni."
+          },
+          {
+            q: "Funziona con qualsiasi IFC?",
+            a: "Sì, purché sia un file standard IFC2x3 o IFC4."
+          },
+          {
+            q: "Devo avere criptovalute?",
+            a: "Serve solo MetaMask. Puoi usare la rete di test senza spendere denaro reale."
+          },
+          {
+            q: "Come valido un modello ricevuto?",
+            a: "Usa la funzione di verifica per incollare l'hash e controllare la registrazione sulla blockchain."
+          }
+        ],
+        contact: "Contattaci"
+      },
+      de: {
+        logo: "BIM-Blockchain Urheberschaft",
+        subtitle: "Schützen Sie das geistige Eigentum und die Gültigkeit Ihrer BIM-Modelle (IFC) durch Registrierung in der Blockchain.<br>Lösung für Architekten, Ingenieure und Bauherren.",
+        whyTitle: "Warum IFC-Modelle auf der Blockchain authentifizieren?",
+        whyList: [
+          "<strong>Urhebernachweis:</strong> Das Modell ist eindeutig mit Autor und Datum verknüpft und kann nicht manipuliert werden.",
+          "<strong>Verhindert illegale Kopien:</strong> Sie können jederzeit nachweisen, wer das Modell erstellt und geliefert hat.",
+          "<strong>Nachvollziehbarkeit und Versionen:</strong> Jede Registrierung (oder Revision) ist eindeutig identifizierbar.",
+          "<strong>Internationale Anerkennung:</strong> Blockchain-Zertifikate haben weltweite Gültigkeit.",
+          "<strong>Transparenz und Vertrauen:</strong> Schafft Vertrauen bei Bauherren, Auftraggebern und Kunden."
+        ],
+        howTitle: "Wie funktioniert es?",
+        howList: [
+          "Laden Sie Ihre IFC-Datei im Webviewer hoch.",
+          "Das System berechnet automatisch eine eindeutige Kennung (Hash).",
+          "Registrieren Sie das Modell in der Ethereum-Blockchain (über MetaMask).",
+          "Modelle können jederzeit abgefragt, überprüft und validiert werden!"
+        ],
+        ctaDesc: "Jetzt ausprobieren:",
+        ctaBtn: "Öffnen Sie den Viewer und registrieren Sie Ihr IFC",
+        ctaHelp: "Im Viewer können Sie Ihr Modell ansehen und in Sekunden registrieren.<br>Nur MetaMask und Ihre IFC-Datei werden benötigt.",
+        whoTitle: "Wer kann es nutzen?",
+        whoList: [
+          "Architekten, Ingenieure und Fachbüros.",
+          "Bauherren und Projektmanager.",
+          "Kunden, die die Echtheit eines BIM-Projekts überprüfen wollen.",
+          "Alle, die einen digitalen, nachvollziehbaren Urhebernachweis benötigen."
+        ],
+        advTitle: "Vorteile gegenüber dem traditionellen System",
+        advList: [
+          "Keine zentrale Instanz erforderlich: Die Blockchain ist öffentlich und transparent.",
+          "Maximale Sicherheit: Nur der Autor kann sein Modell registrieren.",
+          "Abfrage 24/7 und von überall auf der Welt.",
+          "Kann Grundlage für Zahlungs-, Zertifizierungs- oder Nachverfolgungssysteme sein."
+        ],
+        faqTitle: "Häufige Fragen",
+        faq: [
+          {
+            q: "Ist es vertraulich?",
+            a: "Der Modellinhalt wird nicht veröffentlicht, nur Kennung und Metadaten."
+          },
+          {
+            q: "Was passiert, wenn jemand mein Modell registriert?",
+            a: "Nur die erste Registrierung bleibt in der Blockchain; Sie können es immer mit Ihrer Datei nachweisen."
+          },
+          {
+            q: "Kann ich Revisionen registrieren?",
+            a: "Ja, jede Änderung erzeugt einen neuen Hash und Sie können mehrere Versionen registrieren."
+          },
+          {
+            q: "Funktioniert es mit jedem IFC?",
+            a: "Ja, solange es eine standardisierte IFC2x3- oder IFC4-Datei ist."
+          },
+          {
+            q: "Brauche ich Kryptowährungen?",
+            a: "Nur MetaMask wird benötigt. Transaktionen können im Testnetzwerk ohne echtes Geld durchgeführt werden."
+          },
+          {
+            q: "Wie validiere ich ein erhaltenes Modell?",
+            a: "Nutzen Sie die Prüfungsfunktion, um den Hash einzufügen und zu prüfen, ob es registriert ist."
+          }
+        ],
+        contact: "Kontaktieren Sie uns"
+      }
+    };
+
+    const $ = id => document.getElementById(id);
+
+    function renderLang(lang) {
+      const t = translations[lang];
+      $("logo-title").textContent = t.logo;
+      $("subtitle").innerHTML = t.subtitle;
+      $("why-title").textContent = t.whyTitle;
+      $("why-list").innerHTML = t.whyList.map(x => `<li>${x}</li>`).join('');
+      $("how-title").textContent = t.howTitle;
+      $("how-list").innerHTML = t.howList.map(x => `<li>${x}</li>`).join('');
+      $("cta-desc").textContent = t.ctaDesc;
+      $("cta-link").textContent = t.ctaBtn;
+      $("cta-help").innerHTML = t.ctaHelp;
+      $("who-title").textContent = t.whoTitle;
+      $("who-list").innerHTML = t.whoList.map(x => `<li>${x}</li>`).join('');
+      $("adv-title").textContent = t.advTitle;
+      $("adv-list").innerHTML = t.advList.map(x => `<li>${x}</li>`).join('');
+      $("faq-title").textContent = t.faqTitle;
+      $("faq-list").innerHTML = t.faq.map(f => `
+        <div class="faq-item">
+          <div class="faq-q">${f.q}</div>
+          <div class="faq-a">${f.a}</div>
+        </div>
+      `).join('');
+      $("contact-link").textContent = t.contact;
+      document.documentElement.lang = lang;
+    }
+
+    // Inicialitza amb català, o idioma del navegador si està disponible
+    function getDefaultLang() {
+      const nav = navigator.language || "ca";
+      if (translations[nav.slice(0,2)]) return nav.slice(0,2);
+      return "ca";
+    }
+    const initLang = getDefaultLang();
+    $("lang-selector").value = initLang;
+    renderLang(initLang);
+
+    $("lang-selector").addEventListener("change", e => {
+      renderLang(e.target.value);
+    });
+  </script>
+ 
+
 </body>
-  
 </html>
 
