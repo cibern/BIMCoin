@@ -1,41 +1,95 @@
 <!DOCTYPE html>
 <html lang="ca">
-  <head>
-    <meta charset="UTF-8" />
-    <title>BCF BIM Viewer</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+  <meta charset="UTF-8" />
+  <title>BCF BIM Viewer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="translations.js"></script>
+<script>
+  console.log('translations:', window.translations);
+</script>
 
-    <!-- Estils necessaris -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@thatopen/ui@latest/dist/default.css" />
-    <link rel="icon" href="data:,">
-    <!-- Afegeix Inter (moderna i clara) -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <!-- Estils necessaris -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@thatopen/ui@latest/dist/default.css" />
+  <link rel="icon" href="data:,">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    
 
+ 
 
-    <!-- Script principal -->
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+      background: #fafaff;
+      color: #26283b;
+    }
 
-<style>
-  html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    width: 100%;
-    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
-    background: #fafaff;
-    color: #26283b;
-  }
-
-  bim-grid {
-    width: 100vw;
-    height: 100vh;
-    display: grid;
-    grid-template-columns: 30rem 1fr;
-    grid-template-areas: "panel viewport";
-    grid-template-rows: 1fr;
-    background: #fafaff;
-  }
-
-  .panel-tabs-container {
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    #container {
+      flex: 1 0 auto; /* El container ocupa tot el que pugui */
+      min-height: 0;
+    }
+    footer {
+      flex-shrink: 0;
+      text-align: center;
+      font-size: 1em;
+      color: #888;
+      padding: 2.5em 0 1em 0;
+      background: none;
+    }
+    /* El teu CSS de header, etc, va aquí (no el repeteixo per brevitat) */
+    header {
+      background: linear-gradient(90deg, #124c8d 0%, #3496e2 100%);
+      color: #fff;
+      padding: 2.4rem 0 2rem 0;
+      text-align: center;
+      box-shadow: 0 3px 12px rgba(27,77,145,0.07);
+      position: relative;
+    }
+    .logo-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 1.2rem;
+      gap: 1.3em;
+    }
+    .logo-svg {
+      width: 56px; height: 56px;
+      background: #fff; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      border: 2.5px solid #3496e2;
+      box-shadow: 0 4px 22px #124c8d23;
+    }
+    .logo-title {
+      font-weight: 700;
+      font-size: 2.1rem;
+      color: #fff;
+      letter-spacing: 0.03em;
+      margin-left: 0.1em;
+      text-shadow: 0 2px 10px #19518635;
+    }
+    #lang-selector {
+      position: absolute;
+      top: 24px; right: 30px;
+      padding: 0.32em 1.2em;
+      border-radius: 6px;
+      background: #fff;
+      color: #124c8d;
+      border: none;
+      font-size: 1em;
+      box-shadow: 0 2px 10px #124c8d19;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .panel-tabs-container {
     height: 100vh;
     max-height: 100vh;
     overflow-y: auto;
@@ -46,6 +100,7 @@
     flex-direction: column;
     box-shadow: 2px 0 6px rgba(50, 50, 50, 0.04);
   }
+
 
   .panel-tabs-bar {
     display: flex;
@@ -75,6 +130,7 @@
     background: #f8fafe;
 }
 
+
   .panel-tabs-content {
     flex: 1 1 auto;
     overflow-y: auto;
@@ -91,48 +147,95 @@
     background: #b9bbcc;
     border-radius: 8px;
   }
+  footer {
+  flex-shrink: 0;
+  text-align: center;
+  font-size: 1em;
+  color: #888;
+  padding: 2.5em 0 1em 0;
+  background: none;
+}
+nav { display: flex; justify-content: center; align-items: center; background: #f5faff; border-bottom: 1.5px solid #e6ecf6; gap: 0.8em; padding: 0.6em 0 0.3em 0; font-size: 1.09em; position: relative; z-index: 2; }
+    nav a { color: #195186; text-decoration: none; padding: 0.46em 1.16em; border-radius: 7px; font-weight: 500; transition: background 0.14s, color 0.14s; letter-spacing: 0.02em; }
+    nav a:hover, nav a.active { background: #d7ebfc; color: #124c8d; }
 
-  bim-viewport {
-    grid-area: viewport;
-    width: 100%;
-    height: 100%;
-    display: block;
-    background-color: #f0f2f7;
-  }
-
-  @media (max-width: 768px) {
-    bim-grid {
-      grid-template-columns: 1fr;
-      grid-template-areas:
-        "panel"
-        "viewport";
-      grid-template-rows: auto 1fr;
-    }
-
-    .panel-tabs-container {
-      border-right: none;
-      border-bottom: 1px solid #e3e3e9;
-      height: 40vh;
-      max-height: 45vh;
-    }
-    bim-viewport {
-      height: 60vh;
-    }
-  }
-</style>
-
-
-
-    <script type="module" crossorigin src="/BIMCoin/assets/visor-DCBluJeB.js"></script>
-  </head>
-  <body>
-    <!-- Contenidor principal de l'aplicació -->
-    <!--<bim-grid id="app"></bim-grid> -->
+  </style>
+  <script type="module" crossorigin src="/BIMCoin/assets/visor-DCBluJeB.js"></script>
+</head>
+<body>
+  <header>
+    <select id="lang-selector">
+      <option value="ca">Català</option>
+      <option value="es">Español</option>
+      <option value="en">English</option>
+      <option value="fr">Français</option>
+      <option value="it">Italiano</option>
+      <option value="de">Deutsch</option>
+    </select>
+    <div class="logo-container">
+      <div class="logo-svg">
+        <!-- LOGO SVG -->
+        <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
+          <rect x="2" y="2" width="40" height="40" rx="11" fill="#3496e2" stroke="#fff" stroke-width="3"/>
+          <path d="M14 28L22 14L30 28H14Z" fill="#fff" stroke="#124c8d" stroke-width="2"/>
+        </svg>
+      </div>
+      <span class="logo-title" id="logo-title">Autoria BIM-Blockchain</span>
+    </div>
+    <p id="subtitle">
+      Protegeix la propietat intel·lectual i la validesa dels teus models BIM (IFC) amb registre a la blockchain.<br>
+      Solució per arquitectes, enginyers i promotors.
+    </p>
+  </header>
+  <nav>
+    <a href="index.html" class="active" id="nav-home">Home</a>
+    <a href="visor.html" id="nav-visor">Visor</a>
+    <a href="verify.html" id="nav-verify">Comprovar hash</a>
+    <a href="#objectiu" id="nav-objectiu">Objectiu</a>
+    <a href="#faq-title" id="nav-faq">FAQ's</a>
+  </nav>
 
   <div id="container">
-    
+    <!-- Aquí va el teu visor BIM -->
   </div>
-</body>
   
+
+  
+
+
+   <!-- Script principal -->
+  <script>
+    
+
+document.addEventListener("DOMContentLoaded", function() {
+    function byId(id) { return document.getElementById(id); }
+
+    function renderLang(lang) {
+      const t = translations[lang];
+      if (byId("logo-title")) byId("logo-title").textContent = t.logo;
+      if (byId("subtitle")) byId("subtitle").innerHTML = t.subtitle;
+      if (byId("contact-link")) byId("contact-link").textContent = t.contact;
+    }
+
+    function getDefaultLang() {
+      const nav = navigator.language || "ca";
+      if (translations[nav.slice(0,2)]) return nav.slice(0,2);
+      return "ca";
+    }
+
+    // Inicialitza idioma per defecte
+    const initLang = getDefaultLang();
+    byId("lang-selector").value = initLang;
+    renderLang(initLang);
+
+    byId("lang-selector").addEventListener("change", e => {
+      renderLang(e.target.value);
+    });
+  });
+
+  </script>
+  
+</body>
 </html>
+
 

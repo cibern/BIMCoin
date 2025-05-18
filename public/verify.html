@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8">
+  <title>Verifica l’autoria dels teus models BIM</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="translations.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+      margin: 0; padding: 0;
+      background: #f6f8fa;
+      color: #232b38;
+    }
+    .container { 
+      max-width: 600px; 
+      margin: auto; 
+      background: white; 
+      padding: 2em; 
+      border-radius: 16px; 
+      box-shadow: 0 2px 16px #0001; 
+    }
+    button { 
+      padding: 0.7em 1.5em; 
+      border-radius: 1em; 
+      border: none; 
+      background: #2379ca; 
+      color: white; 
+      font-size: 1em; 
+      cursor: pointer; 
+      margin-bottom: 1em;
+    }
+    .hash-list { 
+      margin-top: 1em; 
+    }
+    .hash-item { 
+      background: #e7f0fa; 
+      border-radius: 1em; 
+      padding: 1em; 
+      margin-bottom: 1em;
+      word-break: break-all;
+      font-size: 1em;
+      box-sizing: border-box;
+      overflow-x: auto;
+      max-width: 100%;
+    }
+    .hash-item .hash { 
+      font-family: monospace; 
+      color: #2379ca; 
+      display: block; 
+      margin-bottom: 0.3em;
+      font-size: 0.97em;
+      background: #d8e7f7;
+      border-radius: 0.5em;
+      padding: 0.25em 0.5em;
+      word-break: break-all;
+    }
+    .alert { color: #c00; }
+    .info { color: #777; }
+    @media (max-width: 700px) {
+      .container { padding: 1em; }
+      .hash-item { padding: 0.6em; }
+    }
+    #search {
+      width: 100%;
+      padding: 0.6em 1em;
+      font-size: 1em;
+      border-radius: 0.7em;
+      border: 1px solid #d7e1ef;
+      margin-bottom: 1em;
+      display: none;
+    }
+    #search.visible { display: block; }
+    header {
+      background: linear-gradient(90deg, #124c8d 0%, #3496e2 100%);
+      color: #fff;
+      padding: 2.4rem 0 2rem 0;
+      text-align: center;
+      box-shadow: 0 3px 12px rgba(27,77,145,0.07);
+      position: relative;
+    }
+    .logo-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 1.2rem;
+      gap: 1.3em;
+    }
+    .logo-svg {
+      width: 56px; height: 56px;
+      background: #fff; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      border: 2.5px solid #3496e2;
+      box-shadow: 0 4px 22px #124c8d23;
+    }
+    .logo-title {
+      font-weight: 700;
+      font-size: 2.1rem;
+      color: #fff;
+      letter-spacing: 0.03em;
+      margin-left: 0.1em;
+      text-shadow: 0 2px 10px #19518635;
+    }
+    #lang-selector {
+      position: absolute;
+      top: 24px; right: 30px;
+      padding: 0.32em 1.2em;
+      border-radius: 6px;
+      background: #fff;
+      color: #124c8d;
+      border: none;
+      font-size: 1em;
+      box-shadow: 0 2px 10px #124c8d19;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    nav { display: flex; justify-content: center; align-items: center; background: #f5faff; border-bottom: 1.5px solid #e6ecf6; gap: 0.8em; padding: 0.6em 0 0.3em 0; font-size: 1.09em; position: relative; z-index: 2; }
+    nav a { color: #195186; text-decoration: none; padding: 0.46em 1.16em; border-radius: 7px; font-weight: 500; transition: background 0.14s, color 0.14s; letter-spacing: 0.02em; }
+    nav a:hover, nav a.active { background: #d7ebfc; color: #124c8d; }
+  </style>
+</head>
+<body>
+  <header>
+    <select id="lang-selector">
+      <option value="ca">Català</option>
+      <option value="es">Español</option>
+      <option value="en">English</option>
+      <option value="fr">Français</option>
+      <option value="it">Italiano</option>
+      <option value="de">Deutsch</option>
+    </select>
+    <div class="logo-container">
+      <div class="logo-svg">
+        <!-- LOGO SVG -->
+        <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
+          <rect x="2" y="2" width="40" height="40" rx="11" fill="#3496e2" stroke="#fff" stroke-width="3"/>
+          <path d="M14 28L22 14L30 28H14Z" fill="#fff" stroke="#124c8d" stroke-width="2"/>
+        </svg>
+      </div>
+      <span class="logo-title" id="logo-title">Autoria BIM-Blockchain</span>
+    </div>
+    <p id="subtitle">
+      Protegeix la propietat intel·lectual i la validesa dels teus models BIM (IFC) amb registre a la blockchain.<br>
+      Solució per arquitectes, enginyers i promotors.
+    </p>
+  </header>
+  <nav>
+    <a href="index.html" class="active" id="nav-home">Home</a>
+    <a href="visor.html" id="nav-visor">Visor</a>
+    <a href="verify.html" id="nav-verify">Comprovar hash</a>
+    <a href="#objectiu" id="nav-objectiu">Objectiu</a>
+    <a href="#faq-title" id="nav-faq">FAQ's</a>
+  </nav>
+  <div class="container">
+    <h2 id="verify-title">Verifica i consulta l’autoria</h2>
+    <p id="verify-desc">Prem el botó per veure els últims models IFC registrats.</p>
+    <button id="connect">Consulta IFC registrats a la BlockChain</button>
+    <div id="address"></div>
+    <input id="search" type="text" placeholder="Cerca per nom, versió, descripció, data, autor o hash...">
+    <div id="result" class="hash-list"></div>
+    <div class="info" style="margin-top:2em;">
+      <b>Contracte:</b> <span id="contractAddr"></span>
+    </div>
+  </div>
+  <!-- Ethers.js -->
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.10.0/dist/ethers.umd.min.js"></script>
+  <script>
+    // TOT el JS dins DOMContentLoaded!
+    document.addEventListener("DOMContentLoaded", function() {
+      function $(id) { return document.getElementById(id); }
+
+      // --- CANVI IDIOMA ---
+      function renderLang(lang) {
+        const t = translations[lang];
+        // Només canvia el que existeix en aquesta pàgina:
+        if ($("logo-title")) $("logo-title").textContent = t.logo;
+        if ($("subtitle")) $("subtitle").innerHTML = t.subtitle;
+        if ($("verify-title")) $("verify-title").textContent = t.verifyTitle || "Verifica i consulta l’autoria";
+        if ($("verify-desc")) $("verify-desc").textContent = t.verifyDesc || "Prem el botó per veure els últims models IFC registrats.";
+        if ($("contact-link")) $("contact-link").textContent = t.contact;
+        document.documentElement.lang = lang;
+      }
+      function getDefaultLang() {
+        const nav = navigator.language || "ca";
+        if (translations[nav.slice(0,2)]) return nav.slice(0,2);
+        return "ca";
+      }
+      const initLang = getDefaultLang();
+      if ($("lang-selector")) $("lang-selector").value = initLang;
+      renderLang(initLang);
+      if ($("lang-selector")) $("lang-selector").addEventListener("change", e => {
+        renderLang(e.target.value);
+      });
+
+      // --- ETHERS ---
+      const contractAddress = "0x03c89df2366f99C8e4E4C9010143d54064c0E893";
+      $("contractAddr").textContent = contractAddress;
+      const CONTRACT_ABI = [
+        {
+          "anonymous": false,
+          "inputs": [
+            { "indexed": false, "internalType": "string", "name": "hash", "type": "string" },
+            { "indexed": false, "internalType": "string", "name": "filename", "type": "string" },
+            { "indexed": false, "internalType": "string", "name": "version", "type": "string" },
+            { "indexed": false, "internalType": "string", "name": "description", "type": "string" },
+            { "indexed": false, "internalType": "string", "name": "datetime", "type": "string" },
+            { "indexed": true,  "internalType": "address", "name": "author", "type": "address" }
+          ],
+          "name": "ModelRegistered",
+          "type": "event"
+        }
+      ];
+
+      let lastEvents = [];
+
+      async function connectWalletAndListHashes() {
+        const resultDiv = $("result");
+        const addressDiv = $("address");
+        const searchInput = $("search");
+        resultDiv.innerHTML = "";
+        addressDiv.innerHTML = "";
+
+        // Amaga l'input de cerca fins que es carreguen dades
+        searchInput.value = "";
+        searchInput.classList.remove("visible");
+
+        if (!window.ethereum) {
+          resultDiv.innerHTML = "<b class='alert'>Necessites MetaMask per fer servir aquesta funció.</b>";
+          return;
+        }
+
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
+        const signer = await provider.getSigner();
+        const userAddress = (await signer.getAddress()).toLowerCase();
+
+        addressDiv.innerHTML = "<b>Adreça connectada:</b> " + userAddress;
+
+        const contract = new ethers.Contract(contractAddress, CONTRACT_ABI, provider);
+
+        let latestBlock;
+        try {
+          latestBlock = await provider.getBlockNumber();
+        } catch (err) {
+          resultDiv.innerHTML = "<b class='alert'>No s'ha pogut obtenir el número de bloc. Xarxa correcta?</b>";
+          return;
+        }
+
+        try {
+          let events = await contract.queryFilter("ModelRegistered", 0, latestBlock);
+
+          lastEvents = events.map(ev => ({
+            hash: ev.args.hash,
+            filename: ev.args.filename,
+            version: ev.args.version,
+            description: ev.args.description,
+            datetime: ev.args.datetime,
+            author: (ev.args.author || "").toString(),
+            blockNumber: ev.blockNumber
+          }));
+
+          lastEvents.sort((a, b) => b.blockNumber - a.blockNumber);
+
+          // Mostra el camp de cerca només ara
+          searchInput.classList.add("visible");
+
+          showFilteredList();
+
+          // Activa el filtratge predictiu
+          searchInput.oninput = showFilteredList;
+
+        } catch (err) {
+          console.error(err);
+          resultDiv.innerHTML = "<b class='alert'>Error consultant els registres o massa dades a processar.<br>Revisa que estàs a la xarxa correcta i que el contracte sigui correcte.</b>";
+        }
+      }
+
+      function showFilteredList() {
+        const resultDiv = $("result");
+        const searchInput = $("search");
+        const searchValue = (searchInput.value || "").toLowerCase().trim();
+
+        let filtered = lastEvents;
+        if (searchValue) {
+          filtered = filtered.filter(model =>
+            (model.filename && model.filename.toLowerCase().includes(searchValue)) ||
+            (model.version && model.version.toLowerCase().includes(searchValue)) ||
+            (model.description && model.description.toLowerCase().includes(searchValue)) ||
+            (model.datetime && String(model.datetime).toLowerCase().includes(searchValue)) ||
+            (model.author && String(model.author).toLowerCase().includes(searchValue)) ||
+            (model.hash && model.hash.toLowerCase().includes(searchValue))
+          );
+        }
+
+        filtered = filtered.slice(0, 10);
+
+        if (filtered.length === 0) {
+          resultDiv.innerHTML = "<i>No hi ha registres coincidents.</i>";
+          return;
+        }
+
+        resultDiv.innerHTML = `<h3>A continuació es mostren els 10 últims models IFC registrats a la BlockChain:</h3>`;
+        filtered.forEach((model, i) => {
+          resultDiv.innerHTML += `
+            <div class="hash-item">
+              <b>#${i + 1} — ${model.filename}</b><br>
+              <span class="hash">${model.hash}</span>
+              <span>Versió: <b>${model.version}</b></span><br>
+              <span>Descripció: ${model.description || '-'}</span><br>
+              <span style="color:#777">Data: ${model.datetime}</span><br>
+              <span style="color:#aaa">Author: ${model.author}</span>
+            </div>
+          `;
+        });
+      }
+
+      $("connect").onclick = connectWalletAndListHashes;
+    });
+  </script>
+</body>
+</html>
+
+
