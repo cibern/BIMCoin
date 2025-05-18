@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8">
+  <title>Preguntes Freqüents | Autenticació BIM IFC a Blockchain</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+      margin: 0; padding: 0;
+      background: #f6f8fa;
+      color: #232b38;
+    }
+    header {
+      background: linear-gradient(90deg, #124c8d 0%, #3496e2 100%);
+      color: #fff;
+      padding: 2.4rem 0 2rem 0;
+      text-align: center;
+      box-shadow: 0 3px 12px rgba(27,77,145,0.07);
+      position: relative;
+    }
+    .logo-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 1.2rem;
+      gap: 1.3em;
+    }
+    .logo-svg {
+      width: 56px; height: 56px;
+      background: #fff; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      border: 2.5px solid #3496e2;
+      box-shadow: 0 4px 22px #124c8d23;
+    }
+    .logo-title {
+      font-weight: 700;
+      font-size: 2.1rem;
+      color: #fff;
+      letter-spacing: 0.03em;
+      margin-left: 0.1em;
+      text-shadow: 0 2px 10px #19518635;
+    }
+    #lang-selector {
+      position: absolute;
+      top: 24px; right: 30px;
+      padding: 0.32em 1.2em;
+      border-radius: 6px;
+      background: #fff;
+      color: #124c8d;
+      border: none;
+      font-size: 1em;
+      box-shadow: 0 2px 10px #124c8d19;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    nav {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #f5faff;
+      border-bottom: 1.5px solid #e6ecf6;
+      gap: 0.8em;
+      padding: 0.6em 0 0.3em 0;
+      font-size: 1.09em;
+      position: relative;
+      z-index: 2;
+    }
+    nav a {
+      color: #195186;
+      text-decoration: none;
+      padding: 0.46em 1.16em;
+      border-radius: 7px;
+      font-weight: 500;
+      transition: background 0.14s, color 0.14s;
+      letter-spacing: 0.02em;
+    }
+    nav a:hover, nav a.active {
+      background: #d7ebfc;
+      color: #124c8d;
+    }
+    main {
+      max-width: 820px;
+      margin: 2.5rem auto 2rem auto;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 22px rgba(27,77,145,0.11);
+      padding: 2.6rem 2rem 2.5rem 2rem;
+    }
+    h1 {
+      color: #195186;
+    }
+    .faq-item {
+      margin-bottom: 1.5em;
+      padding: 1em 1.2em 0.5em 1.2em;
+      border-radius: 10px;
+      background: #f7fbfe;
+      box-shadow: 0 1px 8px #3496e211;
+      transition: background 0.2s;
+    }
+    .faq-q {
+      font-weight: 600;
+      color: #165294;
+      margin-bottom: 0.22em;
+      font-size: 1.1em;
+    }
+    .faq-a {
+      color: #234;
+      margin-left: 0.18em;
+      margin-bottom: 0.2em;
+    }
+    footer {
+      text-align: center;
+      font-size: 1em;
+      color: #888;
+      padding: 2.5em 0 1em 0;
+    }
+    @media (max-width: 600px) {
+      main { padding: 1.1rem 0.3rem 1.2rem 0.3rem; }
+      header { padding: 1.2rem 0 1.1rem 0; }
+      nav { flex-wrap: wrap; font-size: 0.98em;}
+      #lang-selector { top: 16px; right: 8px; }
+      .logo-title { font-size: 1.3rem; }
+      nav a { padding: 0.38em 0.81em; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <select id="lang-selector">
+      <option value="ca">Català</option>
+      <option value="es">Español</option>
+      <option value="en">English</option>
+      <option value="fr">Français</option>
+      <option value="it">Italiano</option>
+      <option value="de">Deutsch</option>
+    </select>
+    <div class="logo-container">
+      <div class="logo-svg">
+        <!-- LOGO SVG -->
+        <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
+          <rect x="2" y="2" width="40" height="40" rx="11" fill="#3496e2" stroke="#fff" stroke-width="3"/>
+          <path d="M14 28L22 14L30 28H14Z" fill="#fff" stroke="#124c8d" stroke-width="2"/>
+        </svg>
+      </div>
+      <span class="logo-title" id="logo-title">Autoria BIM-Blockchain</span>
+    </div>
+    <p id="subtitle">
+      Protegeix la propietat intel·lectual i la validesa dels teus models BIM (IFC) amb registre a la blockchain.<br>
+      Solució per arquitectes, enginyers i promotors.
+    </p>
+  </header>
+  <nav>
+    <a href="index.html" id="nav-home">Home</a>
+    <a href="visor.html" id="nav-visor">Visor</a>
+    <a href="verify.html" id="nav-verify">Comprovar hash</a>
+    <a href="porpuse.html" id="nav-objectiu">Propòsit</a>
+    <a href="faqs.html" class="active" id="nav-faq">FAQ's</a>
+  </nav>
+  <main>
+    <h1>Preguntes Freqüents (FAQ)</h1>
+
+    <div class="faq-item">
+      <div class="faq-q">1. Quin avantatge tinc de registrar el meu model BIM a la blockchain?</div>
+      <div class="faq-a">
+        Obtingues una prova digital d’autoria, integritat i data de creació que ningú pot manipular ni eliminar. És útil en conflictes legals, licitacions, certificacions o per a demostrar la teva prioritat creativa.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">2. El registre és confidencial? Els meus fitxers es publiquen?</div>
+      <div class="faq-a">
+        No. La blockchain només desa una empremta digital (hash) i dades mínimes del model (nom, descripció, data), però no el fitxer original. Ningú pot reconstruir l’arxiu només amb el hash.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">3. Puc registrar qualsevol tipus d'arxiu?</div>
+      <div class="faq-a">
+        Aquesta plataforma està pensada per a arxius IFC (models BIM), però tècnicament es podria adaptar a altres formats si fos necessari. El focus actual és garantir l’autenticitat de models BIM.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">4. Què és un BIMCoin i per què el necessito?</div>
+      <div class="faq-a">
+        El BIMCoin és el token digital del sistema. Serveix per pagar els costos de registre i operar dins la plataforma. Cada transacció requereix una petita quantitat de BIMCoins.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">5. Com puc aconseguir BIMCoins?</div>
+      <div class="faq-a">
+        Pots comprar BIMCoins directament a la plataforma, rebre’ls com a recompensa per promoció o aportacions, o adquirir-los a través de plataformes d’intercanvi compatibles (DEX) amb criptomonedes o targeta.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">6. Quants BIMCoins existeixen?</div>
+      <div class="faq-a">
+        Només hi ha 1.000.000 BIMCoins creats i el contracte intel·ligent impedeix generar-ne més. Aquesta limitació garanteix un ecosistema estable i transparent.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">7. Quant costa registrar un model BIM? És car?</div>
+      <div class="faq-a">
+        El cost es calcula segons el pes (MB) del teu arxiu IFC. Per exemple, 1 MB = 1 BIMCoin (subjecte a actualització). Veus el preu exacte abans de confirmar la transacció i només pagues pel que consumeixes.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">8. Si modifico el model, he de tornar a registrar-lo?</div>
+      <div class="faq-a">
+        Sí. Qualsevol canvi en el fitxer canvia l’empremta digital (hash). Si vols deixar constància d’una nova versió, només cal repetir el procés i quedarà registrada la nova versió amb data i hora.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">9. Què passa si algú copia el meu model i l’intenta registrar?</div>
+      <div class="faq-a">
+        El sistema detecta duplicats pel hash únic. Si un model ja està registrat, ningú més pot registrar la mateixa versió. Si algú fa una petita modificació, el hash canvia i es registra com una altra versió, però no com l’original.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">10. Com puc consultar o verificar l’autoria d’un model?</div>
+      <div class="faq-a">
+        A través del visor i l’eina de comprovació pots enganxar el hash del teu fitxer i recuperar tota la informació d’autoria (data, autor, descripció) publicada a la blockchain, de forma immediata.
+      </div>
+    </div>
+
+  </main>
+  <footer>
+    &copy; 2025 Autoria BIM-Blockchain — Projecte en desenvolupament. |
+    <a href="mailto:contacte@autoriabim.com" style="color:#195186;text-decoration:underline;" id="contact-link">Contacta'ns</a>
+  </footer>
+</body>
+</html>
