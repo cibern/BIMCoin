@@ -4,6 +4,30 @@ import * as OBCF from "@thatopen/components-front";
 import * as BUIC from "@thatopen/ui-obc";
 import { BrowserProvider, Contract } from "ethers";
 
+import lighthouse from '@lighthouse-web3/sdk';
+
+const LIGHTHOUSE_API_KEY = '75fbb6cf.d218f26d35d24b0aa509182068439be5';
+
+async function uploadToLighthouse(file) {
+  try {
+    // Ha de ser un array de fitxers! [file]
+    const response = await lighthouse.upload([file], LIGHTHOUSE_API_KEY);
+
+    if (response && response.data && response.data.Hash) {
+      const cid = response.data.Hash;
+      // ALERT BONIC! També pots fer servir SweetAlert2 o similar per estilitzar
+      alert(`✅ Fitxer pujat correctament!\n\nCID: ${cid}`);
+
+      // Retorna el CID si vols utilitzar-lo després
+      return cid;
+    } else {
+      alert("❌ Error: No s'ha pogut obtenir el CID.");
+    }
+  } catch (err) {
+    alert(`❌ Error pujant el fitxer: ${err.message || err}`);
+  }
+}
+
 
 let components, world, loadedModel = null;
 
@@ -79,6 +103,11 @@ async function main() {
         bimCoinCost = Math.max(10, Math.ceil(fileSizeMB) * 10);
         lastLoadedFile = file;
         renderPanel();
+        //const cid = await uploadToLighthouse(file);
+    
+
+        
+        
 
         // Opcional: Carrega el model al visor
         const arrayBuffer = await file.arrayBuffer();
@@ -94,6 +123,8 @@ async function main() {
       // Força indexació de relacions (important!)
       const indexer = components.get(OBC.IfcRelationsIndexer);
       await indexer.process(loadedModel);
+
+      
 
       // Classificació
       const classifier = components.get(OBC.Classifier);
@@ -349,57 +380,72 @@ panelBIMCoin = BUI.Component.create(() => {
   };
 
   const registerModel = async () => {
-    if (!currentIFCBuffer) {
-      alert("Carrega un model IFC primer!");
-      return;
-    }
-    if (!formData.filename || !formData.version || !formData.description || !formData.datetime) {
-      alert("Si us plau, omple tots els camps!");
-      return;
-    }
-    const hashBuffer = await crypto.subtle.digest('SHA-256', currentIFCBuffer);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('').toLowerCase();
-    console.log("Hash generat per aquest model IFC:", hashHex);
+  if (!currentIFCBuffer) {
+    alert("Carrega un model IFC primer!");
+    return;
+  }
+  if (!formData.filename || !formData.version || !formData.description || !formData.datetime) {
+    alert("Si us plau, omple tots els camps!");
+    return;
+  }
 
-    if (!window.ethereum) {
-      alert("Instal·la MetaMask primer!");
-      return;
-    }
+  // Calcula el hash SHA-256 del buffer
+  const hashBuffer = await crypto.subtle.digest('SHA-256', currentIFCBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('').toLowerCase();
 
-    try {
-      const provider = new BrowserProvider(window.ethereum);
-      await provider.send("eth_requestAccounts", []);
-      const signer = await provider.getSigner();
-      const contract = new Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+  if (!window.ethereum) {
+    alert("Instal·la MetaMask primer!");
+    return;
+  }
 
-      const alreadyRegistered = await contract.isModelRegistered(hashHex);
-      if (alreadyRegistered) {
-        const info = await contract.getModelInfo(hashHex);
-        alert(
-          "Aquest model ja està registrat a la blockchain!\n" +
-          `Nom: ${info.filename}\nVersió: ${info.version}\nDescripció: ${info.description}\nData/hora: ${info.datetime}\nAutor: ${info.author}`
-        );
-        return;
-      }
+  try {
+    const provider = new BrowserProvider(window.ethereum);
+    await provider.send("eth_requestAccounts", []);
+    const signer = await provider.getSigner();
+    const contract = new Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
 
-      const tx = await contract.registerModel(
-        hashHex,
-        formData.filename,
-        formData.version,
-        formData.description,
-        formData.datetime
+    // PRIMER: Comprova si ja està registrat
+    const alreadyRegistered = await contract.isModelRegistered(hashHex);
+    if (alreadyRegistered) {
+      const info = await contract.getModelInfo(hashHex);
+      alert(
+        "Aquest model ja està registrat a la blockchain!\n" +
+        `Nom: ${info.filename}\nVersió: ${info.version}\nDescripció: ${info.description}\nData/hora: ${info.datetime}\nAutor: ${info.author}`
       );
-
-      alert("Transacció enviada! Esperant confirmació...");
-      await tx.wait();
-      lastHash = hashHex;
-      showHashBox = true;
-      panelBIMCoin.update();
-    } catch (e) {
-      alert("Error enviant la transacció: " + (e.message || e));
+      return;
     }
-  };
+
+    // SEGON: Puja el fitxer a Lighthouse (o NFT.Storage)
+    const file = new File([currentIFCBuffer], formData.filename || "model.ifc");
+    let cid;
+    try {
+      cid = await uploadToLighthouse(file); // <-- Crida la teva funció aquí!
+      alert("Fitxer pujat a IPFS! CID: " + cid);
+    } catch (err) {
+      alert("Error pujant el fitxer a IPFS: " + (err.message || err));
+      return;
+    }
+
+    // TERCER: Registra a la blockchain
+    // Si vols, afegeix el CID a la descripció o a un camp a part (si el contracte ho permet)
+    const tx = await contract.registerModel(
+      hashHex,
+      formData.filename,
+      formData.version,
+      formData.description + `\nCID: ${cid}`,
+      formData.datetime
+    );
+
+    alert("Transacció enviada! Esperant confirmació...");
+    await tx.wait();
+    lastHash = hashHex;
+    showHashBox = true;
+    panelBIMCoin.update();
+  } catch (e) {
+    alert("Error enviant la transacció: " + (e.message || e));
+  }
+};
 
   // --- Funcions per validar hash ---
   const onCheckInput = (e) => {
