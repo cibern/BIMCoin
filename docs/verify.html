@@ -13,7 +13,7 @@
       color: #232b38;
     }
     .container { 
-      max-width: 600px; 
+       max-width: 50vw; /* 50% de la pantalla */
       margin: auto; 
       background: white; 
       padding: 2em; 
@@ -43,6 +43,7 @@
       box-sizing: border-box;
       overflow-x: auto;
       max-width: 100%;
+      align-items: flex-start; /* Ajusta tot a l'esquerra, menys el botó */
     }
     .hash-item .hash { 
       font-family: monospace; 
@@ -55,6 +56,26 @@
       padding: 0.25em 0.5em;
       word-break: break-all;
     }
+    .hash-item .download-btn {
+  display: block;
+  margin: 1.2em auto 0 auto; /* Centrat horitzontalment */
+  background: #2379ca;
+  color: white;
+  border: none;
+  border-radius: 1em;
+  padding: 0.8em 2em;
+  font-size: 1em;
+  cursor: pointer;
+  font-weight: 500;
+  box-shadow: 0 2px 6px #124c8d14;
+  transition: background 0.18s;
+}
+.hash-item .download-btn:hover {
+  background: #185999;
+}
+@media (max-width: 900px) {
+  .container { max-width: 97vw; }
+}
     .alert { color: #c00; }
     .info { color: #777; }
     @media (max-width: 700px) {
@@ -276,43 +297,116 @@
       }
 
       function showFilteredList() {
-        const resultDiv = $("result");
-        const searchInput = $("search");
-        const searchValue = (searchInput.value || "").toLowerCase().trim();
+  const resultDiv = $("result");
+  const searchInput = $("search");
+  const searchValue = (searchInput.value || "").toLowerCase().trim();
 
-        let filtered = lastEvents;
-        if (searchValue) {
-          filtered = filtered.filter(model =>
-            (model.filename && model.filename.toLowerCase().includes(searchValue)) ||
-            (model.version && model.version.toLowerCase().includes(searchValue)) ||
-            (model.description && model.description.toLowerCase().includes(searchValue)) ||
-            (model.datetime && String(model.datetime).toLowerCase().includes(searchValue)) ||
-            (model.author && String(model.author).toLowerCase().includes(searchValue)) ||
-            (model.hash && model.hash.toLowerCase().includes(searchValue))
-          );
-        }
+  let filtered = lastEvents;
+  if (searchValue) {
+    filtered = filtered.filter(model =>
+      (model.filename && model.filename.toLowerCase().includes(searchValue)) ||
+      (model.version && model.version.toLowerCase().includes(searchValue)) ||
+      (model.description && model.description.toLowerCase().includes(searchValue)) ||
+      (model.datetime && String(model.datetime).toLowerCase().includes(searchValue)) ||
+      (model.author && String(model.author).toLowerCase().includes(searchValue)) ||
+      (model.hash && model.hash.toLowerCase().includes(searchValue))
+    );
+  }
 
-        filtered = filtered.slice(0, 10);
+  filtered = filtered.slice(0, 10);
 
-        if (filtered.length === 0) {
-          resultDiv.innerHTML = "<i>No hi ha registres coincidents.</i>";
-          return;
-        }
+  if (filtered.length === 0) {
+    resultDiv.innerHTML = "<i>No hi ha registres coincidents.</i>";
+    return;
+  }
 
-        resultDiv.innerHTML = `<h3>A continuació es mostren els 10 últims models IFC registrats a la BlockChain:</h3>`;
-        filtered.forEach((model, i) => {
-          resultDiv.innerHTML += `
-            <div class="hash-item">
-              <b>#${i + 1} — ${model.filename}</b><br>
-              <span class="hash">${model.hash}</span>
-              <span>Versió: <b>${model.version}</b></span><br>
-              <span>Descripció: ${model.description || '-'}</span><br>
-              <span style="color:#777">Data: ${model.datetime}</span><br>
-              <span style="color:#aaa">Author: ${model.author}</span>
-            </div>
-          `;
-        });
-      }
+  resultDiv.innerHTML = `<h3>A continuació es mostren els 10 últims models IFC registrats a la BlockChain:</h3>`;
+  filtered.forEach((model, i) => {
+    // Extraure CID del text "CID: xyz" a la descripció
+    let cid = null;
+     let fileSizeMB = null;
+    const cidMatch = model.description && model.description.match(/CID:\s*([a-z0-9]+)/i);
+    if (cidMatch) cid = cidMatch[1];
+    const mbMatch = model.description && model.description.match(/MB:\s*([\d.]+)/i);
+    if (mbMatch) fileSizeMB = parseFloat(mbMatch[1]);
+
+    // --- Calcula el cost ---
+    let cost = '';
+    if (fileSizeMB !== null) {
+      cost = Math.max(10, Math.ceil(fileSizeMB) * 10); // 10 BIMCoin mínim!
+    }
+
+resultDiv.innerHTML += `
+  <div class="hash-item">
+    <b>#${i + 1} — ${model.filename}</b><br>
+    <span class="hash">${model.hash}</span>
+    <span>Versió: <b>${model.version}</b></span><br>
+    <span>Descripció: ${(model.description || '-').replace(/CID:\s*[a-z0-9]+/i, '').replace(/MB:\s*[\d.]+/i, '').replace(/\n+$/, '').trim()}</span><br>
+    <span style="color:#777">Data: ${formatDate(model.datetime)}</span><br>
+    <span style="color:#aaa">Author: ${model.author}</span>
+    ${cid ? `
+      <br>
+      <div style="display: flex; justify-content: center; align-items: center; gap: 1em; margin-top: 1.2em;">
+        <button 
+          class="download-btn" 
+          data-cid="${cid}" 
+          data-filename="${model.filename || 'model'}.ifc">
+          ⬇️ Descarregar ${(model.filename || 'model')}.IFC
+        </button>
+        ${cost ? `<span style="font-size:1.1em; color:#195186; background:#e7f6fa; border-radius:7px; padding:0.4em 0.8em; display:inline-block;">💰 ${cost} BIMCoin</span>` : ""}
+      </div>
+    ` : ""}
+  </div>
+`;
+
+  });
+
+  // Després d'actualitzar el resultDiv...
+// Afegeix listeners als nous botons de descàrrega
+document.querySelectorAll('.download-btn').forEach(btn => {
+  btn.onclick = async function() {
+    const cid = btn.getAttribute('data-cid');
+    const filename = btn.getAttribute('data-filename') || 'model.ifc';
+    btn.textContent = "Descarregant...";
+
+    try {
+      const response = await fetch(`https://gateway.lighthouse.storage/ipfs/${cid}`);
+      if (!response.ok) throw new Error('No s\'ha pogut descarregar el fitxer');
+      const blob = await response.blob();
+
+      // Crear un enllaç temporal per forçar la descàrrega
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+        a.remove();
+        btn.textContent = "⬇️ Descarregar IFC";
+      }, 1000);
+    } catch (err) {
+      alert("Error descarregant el fitxer IFC!");
+      btn.textContent = "⬇️ Descarregar IFC";
+    }
+  };
+});
+}
+
+function formatDate(datetime) {
+  // Si hi ha 'T', separem data i hora
+  const [datePart, timePart] = datetime.split('T');
+  const [year, month, day] = datePart.split('-');
+  // Si hi ha hora, només agafem hores i minuts
+  const time = timePart ? timePart.slice(0,5) : '';
+  return `${day}/${month}/${year}${time ? ' (' + time + ')' : ''}`;
+}
+
+
+
+
+
 
       $("connect").onclick = connectWalletAndListHashes;
     });

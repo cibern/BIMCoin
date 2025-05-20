@@ -30,6 +30,7 @@ async function uploadToLighthouse(file) {
 
 
 let components, world, loadedModel = null;
+let fileSizeMB = 0;
 
 async function main() {
   // Inicialitza la UI
@@ -380,72 +381,68 @@ panelBIMCoin = BUI.Component.create(() => {
   };
 
   const registerModel = async () => {
-  if (!currentIFCBuffer) {
-    alert("Carrega un model IFC primer!");
-    return;
-  }
-  if (!formData.filename || !formData.version || !formData.description || !formData.datetime) {
-    alert("Si us plau, omple tots els camps!");
-    return;
-  }
-
-  // Calcula el hash SHA-256 del buffer
-  const hashBuffer = await crypto.subtle.digest('SHA-256', currentIFCBuffer);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('').toLowerCase();
-
-  if (!window.ethereum) {
-    alert("Instal·la MetaMask primer!");
-    return;
-  }
-
-  try {
-    const provider = new BrowserProvider(window.ethereum);
-    await provider.send("eth_requestAccounts", []);
-    const signer = await provider.getSigner();
-    const contract = new Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
-
-    // PRIMER: Comprova si ja està registrat
-    const alreadyRegistered = await contract.isModelRegistered(hashHex);
-    if (alreadyRegistered) {
-      const info = await contract.getModelInfo(hashHex);
-      alert(
-        "Aquest model ja està registrat a la blockchain!\n" +
-        `Nom: ${info.filename}\nVersió: ${info.version}\nDescripció: ${info.description}\nData/hora: ${info.datetime}\nAutor: ${info.author}`
-      );
+    if (!currentIFCBuffer) {
+      alert("Carrega un model IFC primer!");
+      return;
+    }
+    if (!formData.filename || !formData.version || !formData.description || !formData.datetime) {
+      alert("Si us plau, omple tots els camps!");
       return;
     }
 
-    // SEGON: Puja el fitxer a Lighthouse (o NFT.Storage)
+    // Puja el fitxer a Lighthouse
     const file = new File([currentIFCBuffer], formData.filename || "model.ifc");
     let cid;
     try {
-      cid = await uploadToLighthouse(file); // <-- Crida la teva funció aquí!
+      cid = await uploadToLighthouse(file);  // Aquesta funció hauria de tornar el CID
       alert("Fitxer pujat a IPFS! CID: " + cid);
     } catch (err) {
       alert("Error pujant el fitxer a IPFS: " + (err.message || err));
       return;
+  }
+    const hashBuffer = await crypto.subtle.digest('SHA-256', currentIFCBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('').toLowerCase();
+    console.log("Hash generat per aquest model IFC:", hashHex);
+
+    if (!window.ethereum) {
+      alert("Instal·la MetaMask primer!");
+      return;
     }
 
-    // TERCER: Registra a la blockchain
-    // Si vols, afegeix el CID a la descripció o a un camp a part (si el contracte ho permet)
-    const tx = await contract.registerModel(
-      hashHex,
-      formData.filename,
-      formData.version,
-      formData.description + `\nCID: ${cid}`,
-      formData.datetime
-    );
+    try {
+      const provider = new BrowserProvider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      const signer = await provider.getSigner();
+      const contract = new Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
 
-    alert("Transacció enviada! Esperant confirmació...");
-    await tx.wait();
-    lastHash = hashHex;
-    showHashBox = true;
-    panelBIMCoin.update();
-  } catch (e) {
-    alert("Error enviant la transacció: " + (e.message || e));
-  }
-};
+      const alreadyRegistered = await contract.isModelRegistered(hashHex);
+      if (alreadyRegistered) {
+        const info = await contract.getModelInfo(hashHex);
+        alert(
+          "Aquest model ja està registrat a la blockchain!\n" +
+          `Nom: ${info.filename}\nVersió: ${info.version}\nDescripció: ${info.description}\nData/hora: ${info.datetime}\nAutor: ${info.author}`
+        );
+        return;
+      }
+
+      const tx = await contract.registerModel(
+        hashHex,
+        formData.filename,
+        formData.version,
+        formData.description + `\nCID: ${cid}\nMB: ${fileSizeMB.toFixed(2)}`,  // <--- Aquí inclous CID i MB
+        formData.datetime
+      );
+
+      alert("Transacció enviada! Esperant confirmació...");
+      await tx.wait();
+      lastHash = hashHex;
+      showHashBox = true;
+      panelBIMCoin.update();
+    } catch (e) {
+      alert("Error enviant la transacció: " + (e.message || e));
+    }
+  };
 
   // --- Funcions per validar hash ---
   const onCheckInput = (e) => {
