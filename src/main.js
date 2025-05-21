@@ -2,7 +2,9 @@ import * as BUI from "@thatopen/ui";
 import * as OBC from "@thatopen/components";
 import * as OBCF from "@thatopen/components-front";
 import * as BUIC from "@thatopen/ui-obc";
-import { BrowserProvider, Contract } from "ethers";
+import { BrowserProvider, Contract, formatUnits } from "ethers";
+import html2canvas from 'html2canvas';
+
 
 import lighthouse from '@lighthouse-web3/sdk';
 
@@ -43,8 +45,10 @@ async function main() {
   const sceneComponent = new OBC.SimpleScene(components);
   sceneComponent.setup();
   world.scene = sceneComponent;
+  //world.scene.three.background = null;
 
   const viewport = document.createElement("bim-viewport");
+  viewport.id = "visor"; // <--- Aquí li assignes l'id
   const rendererComponent = new OBC.SimpleRenderer(components, viewport);
   world.renderer = rendererComponent;
 
@@ -58,6 +62,7 @@ async function main() {
 
   const viewerGrids = components.get(OBC.Grids);
   viewerGrids.create(world);
+  
 
   await components.init();
 
@@ -101,7 +106,8 @@ async function main() {
         const file = e.target.files[0];
         if (!file) return;
         fileSizeMB = file.size / (1024 * 1024);
-        bimCoinCost = Math.max(10, Math.ceil(fileSizeMB) * 10);
+        fileSizeMB = Math.max(0.01, parseFloat(fileSizeMB.toFixed(2))); // ✅ Arrodonit amb mínim 0.01
+        bimCoinCost = Math.max(10, Math.ceil(fileSizeMB) * 10); // ✅
         lastLoadedFile = file;
         renderPanel();
         //const cid = await uploadToLighthouse(file);
@@ -367,6 +373,14 @@ console.log("STOREYS TROBATS:", storeys);
   }
 ];
 
+// AFEGEIX AIXÒ just després 👇
+const BIMCOIN_ADDRESS = "0xE464B8A1FAaC982dEe365D9fB3aC1100737Ef4B5";
+const BIMCOIN_ABI = [
+  "function balanceOf(address) view returns (uint256)",
+  "function decimals() view returns (uint8)",
+  "function transfer(address to, uint256 amount) returns (bool)"
+];
+
 
 let lastHash = null;
 let showHashBox = false;
@@ -381,68 +395,112 @@ panelBIMCoin = BUI.Component.create(() => {
   };
 
   const registerModel = async () => {
-    if (!currentIFCBuffer) {
-      alert("Carrega un model IFC primer!");
-      return;
-    }
-    if (!formData.filename || !formData.version || !formData.description || !formData.datetime) {
-      alert("Si us plau, omple tots els camps!");
-      return;
-    }
-
-    // Puja el fitxer a Lighthouse
-    const file = new File([currentIFCBuffer], formData.filename || "model.ifc");
-    let cid;
-    try {
-      cid = await uploadToLighthouse(file);  // Aquesta funció hauria de tornar el CID
-      alert("Fitxer pujat a IPFS! CID: " + cid);
-    } catch (err) {
-      alert("Error pujant el fitxer a IPFS: " + (err.message || err));
-      return;
+  if (!currentIFCBuffer) {
+    alert("Carrega un model IFC primer!");
+    return;
   }
+
+  if (!formData.filename || !formData.version || !formData.description || !formData.datetime) {
+    alert("Si us plau, omple tots els camps!");
+    return;
+  }
+
+  // 📤 Puja el fitxer a IPFS (Lighthouse)
+  const file = new File([currentIFCBuffer], formData.filename || "model.ifc");
+  let cid;
+  try {
+    cid = await uploadToLighthouse(file);
+    alert("Fitxer pujat a IPFS! CID: " + cid);
+  } catch (err) {
+    alert("Error pujant el fitxer a IPFS: " + (err.message || err));
+    return;
+  }
+
+  // 📸 Captura del visor com a imatge
+  let imageCid = null;
+  try {
+    const renderer = world.renderer.three;
+    renderer.render(world.scene.three, world.camera.three);
+    const dataURL = renderer.domElement.toDataURL("image/png");
+    const imageBlob = base64ToBlob(dataURL, 'image/png');
+    const imageFile = new File([imageBlob], "captura.png", { type: "image/png" });
+    imageCid = await uploadToLighthouse(imageFile);
+    console.log("✅ Imatge pujada a IPFS amb CID:", imageCid);
+  } catch (err) {
+    alert("❌ Error capturant o pujant la imatge: " + (err.message || err));
+  }
+
+  // 🔐 Connecta amb MetaMask i prepara contractes
+  if (!window.ethereum) {
+    alert("Instal·la MetaMask primer!");
+    return;
+  }
+
+  try {
+    const provider = new BrowserProvider(window.ethereum);
+    await provider.send("eth_requestAccounts", []);
+    const signer = await provider.getSigner();
+    const userAddress = await signer.getAddress(); // <- AFEGIT! NECESSARI
+
+    const registerContract = new Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+    const tokenContract = new Contract(BIMCOIN_ADDRESS, BIMCOIN_ABI, signer);
+
+    // 💾 Calcular hash del model
     const hashBuffer = await crypto.subtle.digest('SHA-256', currentIFCBuffer);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('').toLowerCase();
-    console.log("Hash generat per aquest model IFC:", hashHex);
+    console.log("🧾 Hash del model:", hashHex);
 
-    if (!window.ethereum) {
-      alert("Instal·la MetaMask primer!");
+    // ❌ Evita duplicats
+    const alreadyRegistered = await registerContract.isModelRegistered(hashHex);
+    if (alreadyRegistered) {
+      const info = await registerContract.getModelInfo(hashHex);
+      alert(
+        "Aquest model ja està registrat!\n" +
+        `Nom: ${info.filename}\nVersió: ${info.version}\nDescripció: ${info.description}\nData/hora: ${info.datetime}\nAutor: ${info.author}`
+      );
       return;
     }
 
-    try {
-      const provider = new BrowserProvider(window.ethereum);
-      await provider.send("eth_requestAccounts", []);
-      const signer = await provider.getSigner();
-      const contract = new Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+    // 💰 Pagament amb BIMCoin
+    const decimals = await tokenContract.decimals();
+    const amount = BigInt(Math.floor(window.currentBIMCoinCost)) * (10n ** BigInt(decimals));
+    const balance = await tokenContract.balanceOf(userAddress);
 
-      const alreadyRegistered = await contract.isModelRegistered(hashHex);
-      if (alreadyRegistered) {
-        const info = await contract.getModelInfo(hashHex);
-        alert(
-          "Aquest model ja està registrat a la blockchain!\n" +
-          `Nom: ${info.filename}\nVersió: ${info.version}\nDescripció: ${info.description}\nData/hora: ${info.datetime}\nAutor: ${info.author}`
-        );
-        return;
-      }
-
-      const tx = await contract.registerModel(
-        hashHex,
-        formData.filename,
-        formData.version,
-        formData.description + `\nCID: ${cid}\nMB: ${fileSizeMB.toFixed(2)}`,  // <--- Aquí inclous CID i MB
-        formData.datetime
-      );
-
-      alert("Transacció enviada! Esperant confirmació...");
-      await tx.wait();
-      lastHash = hashHex;
-      showHashBox = true;
-      panelBIMCoin.update();
-    } catch (e) {
-      alert("Error enviant la transacció: " + (e.message || e));
+    if (balance < amount) {
+      alert("❌ No tens prou BIMCoins!");
+      return;
     }
-  };
+
+    const txPayment = await tokenContract.transfer(CONTRACT_ADDRESS, amount);
+    alert("💸 Pagament amb BIMCoin enviat... Esperant confirmació...");
+    await txPayment.wait();
+
+    // 📝 Registra el model a la blockchain
+    const fileSizeMB = window.currentFileSizeMB || 0;
+    let desc = formData.description + `\nCID: ${cid}\nMB: ${fileSizeMB.toFixed(2)}`;
+    if (imageCid) desc += `\nIMG: ${imageCid}`;
+
+    const tx = await registerContract.registerModel(
+      hashHex,
+      formData.filename,
+      formData.version,
+      desc,
+      formData.datetime
+    );
+
+    alert("⛓️ Transacció enviada! Esperant confirmació...");
+    await tx.wait();
+
+    lastHash = hashHex;
+    showHashBox = true;
+    panelBIMCoin.update();
+  } catch (e) {
+    alert("❌ Error durant el registre: " + (e.message || e));
+  }
+};
+
+
 
   // --- Funcions per validar hash ---
   const onCheckInput = (e) => {
@@ -806,3 +864,98 @@ async function addPlansPanel(model) {
   // Afegeix el panel a la pàgina
   document.body.append(panel);
 }
+
+function base64ToBlob(dataURL, mimeType) {
+  const byteString = atob(dataURL.split(',')[1]);
+  const ab = new ArrayBuffer(byteString.length);
+  const ia = new Uint8Array(ab);
+  for (let i = 0; i < byteString.length; i++) {
+    ia[i] = byteString.charCodeAt(i);
+  }
+  return new Blob([ab], { type: mimeType });
+}
+
+const BIMCOIN_ADDRESS = "0xE464B8A1FAaC982dEe365D9fB3aC1100737Ef4B5";
+const BIMCOIN_ABI = [
+  { "inputs": [{ "internalType": "address", "name": "spender", "type": "address" }, { "internalType": "uint256", "name": "value", "type": "uint256" }], "name": "approve", "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }], "stateMutability": "nonpayable", "type": "function" },
+  { "inputs": [], "stateMutability": "nonpayable", "type": "constructor" },
+  { "inputs": [{ "internalType": "address", "name": "spender", "type": "address" }, { "internalType": "uint256", "name": "allowance", "type": "uint256" }, { "internalType": "uint256", "name": "needed", "type": "uint256" }], "name": "ERC20InsufficientAllowance", "type": "error" },
+  { "inputs": [{ "internalType": "address", "name": "sender", "type": "address" }, { "internalType": "uint256", "name": "balance", "type": "uint256" }, { "internalType": "uint256", "name": "needed", "type": "uint256" }], "name": "ERC20InsufficientBalance", "type": "error" },
+  { "inputs": [{ "internalType": "address", "name": "approver", "type": "address" }], "name": "ERC20InvalidApprover", "type": "error" },
+  { "inputs": [{ "internalType": "address", "name": "receiver", "type": "address" }], "name": "ERC20InvalidReceiver", "type": "error" },
+  { "inputs": [{ "internalType": "address", "name": "sender", "type": "address" }], "name": "ERC20InvalidSender", "type": "error" },
+  { "inputs": [{ "internalType": "address", "name": "spender", "type": "address" }], "name": "ERC20InvalidSpender", "type": "error" },
+  { "anonymous": false, "inputs": [{ "indexed": true, "internalType": "address", "name": "owner", "type": "address" }, { "indexed": true, "internalType": "address", "name": "spender", "type": "address" }, { "indexed": false, "internalType": "uint256", "name": "value", "type": "uint256" }], "name": "Approval", "type": "event" },
+  { "inputs": [{ "internalType": "address", "name": "to", "type": "address" }, { "internalType": "uint256", "name": "value", "type": "uint256" }], "name": "transfer", "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }], "stateMutability": "nonpayable", "type": "function" },
+  { "anonymous": false, "inputs": [{ "indexed": true, "internalType": "address", "name": "from", "type": "address" }, { "indexed": true, "internalType": "address", "name": "to", "type": "address" }, { "indexed": false, "internalType": "uint256", "name": "value", "type": "uint256" }], "name": "Transfer", "type": "event" },
+  { "inputs": [{ "internalType": "address", "name": "from", "type": "address" }, { "internalType": "address", "name": "to", "type": "address" }, { "internalType": "uint256", "name": "value", "type": "uint256" }], "name": "transferFrom", "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }], "stateMutability": "nonpayable", "type": "function" },
+  { "inputs": [{ "internalType": "address", "name": "owner", "type": "address" }, { "internalType": "address", "name": "spender", "type": "address" }], "name": "allowance", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" },
+  { "inputs": [{ "internalType": "address", "name": "account", "type": "address" }], "name": "balanceOf", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" },
+  { "inputs": [], "name": "decimals", "outputs": [{ "internalType": "uint8", "name": "", "type": "uint8" }], "stateMutability": "view", "type": "function" },
+  { "inputs": [], "name": "name", "outputs": [{ "internalType": "string", "name": "", "type": "string" }], "stateMutability": "view", "type": "function" },
+  { "inputs": [], "name": "symbol", "outputs": [{ "internalType": "string", "name": "", "type": "string" }], "stateMutability": "view", "type": "function" },
+  { "inputs": [], "name": "totalSupply", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" }
+];
+
+
+
+async function updateBIMCoinInfo() {
+  if (!window.ethereum) {
+    console.warn("❗️ No hi ha MetaMask o provider disponible.");
+    return;
+  }
+
+  try {
+    console.log("🔌 Connectant amb provider...");
+    const provider = new BrowserProvider(window.ethereum);
+
+    console.log("🔐 Obtenint signer...");
+    const signer = await provider.getSigner();
+
+    const userAddress = await signer.getAddress();
+    console.log("👤 Adreça de l'usuari:", userAddress);
+
+    const contract = new Contract(BIMCOIN_ADDRESS, BIMCOIN_ABI, provider);
+    console.log("📄 Contracte inicialitzat correctament");
+
+    const [walletRaw, totalRaw, decimals] = await Promise.all([
+      contract.balanceOf(userAddress),
+      contract.totalSupply(),
+      contract.decimals()
+    ]);
+
+    console.log("💰 Raw wallet balance:", walletRaw.toString());
+    console.log("🏦 Raw total supply:", totalRaw.toString());
+    console.log("🔢 Decimals:", decimals);
+
+    const walletBalance = formatUnits(walletRaw.toString(), decimals);
+    const totalSupply = formatUnits(totalRaw.toString(), decimals);
+
+    console.log("✅ Formatejat wallet balance:", walletBalance);
+    console.log("✅ Formatejat total supply:", totalSupply);
+
+    // Actualitza el DOM
+    const walletElem = document.getElementById("walletBalance");
+    const totalElem = document.getElementById("totalSupply");
+
+    if (walletElem) {
+      walletElem.textContent = `${parseFloat(walletBalance).toFixed(0)} BIMC`;
+    } else {
+      console.warn("⚠️ No s'ha trobat #walletBalance al DOM");
+    }
+
+    if (totalElem) {
+      totalElem.textContent = `${parseFloat(totalSupply).toFixed(2)} BIMC`;
+    } else {
+      console.warn("⚠️ No s'ha trobat #totalSupply al DOM");
+    }
+
+  } catch (err) {
+    console.error("❌ Error carregant info BIMCoin:", err);
+  }
+}
+
+updateBIMCoinInfo();
+
+
+

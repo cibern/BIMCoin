@@ -5,6 +5,7 @@
   <title>Verifica l’autoria dels teus models BIM</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="translations.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <style>
     body {
       font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
@@ -165,6 +166,24 @@
       Solució per arquitectes, enginyers i promotors.
     </p>
   </header>
+  <!-- Targeta fixa a la cantonada inferior dreta -->
+<div id="bimcoin-header-info" style="
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 999;
+  background: #195186;
+  padding: 0.8rem 1.2rem;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 0.95em;
+  box-shadow: 0 4px 16px #0002;
+  text-align: left;
+  max-width: 220px;
+">
+  💰 <strong>Saldo:</strong> <span id="wallet-balance">-</span><br>
+  🧱 <strong>Total:</strong> <span id="bimcoin-total">-</span>
+</div>
   <nav>
     <a href="index.html"  id="nav-home">Home</a>
     <a href="visor.html" id="nav-visor">Visor</a>
@@ -324,40 +343,89 @@
   filtered.forEach((model, i) => {
     // Extraure CID del text "CID: xyz" a la descripció
     let cid = null;
-     let fileSizeMB = null;
-    const cidMatch = model.description && model.description.match(/CID:\s*([a-z0-9]+)/i);
-    if (cidMatch) cid = cidMatch[1];
-    const mbMatch = model.description && model.description.match(/MB:\s*([\d.]+)/i);
-    if (mbMatch) fileSizeMB = parseFloat(mbMatch[1]);
+let imageCID = null;
+let fileSizeMB = null;
 
-    // --- Calcula el cost ---
-    let cost = '';
-    if (fileSizeMB !== null) {
-      cost = Math.max(10, Math.ceil(fileSizeMB) * 10); // 10 BIMCoin mínim!
-    }
+console.log("📦 Descripció del model:", model.description);
+
+// Extreu CID
+const cidMatch = model.description && model.description.match(/CID:\s*([a-z0-9]+)/i);
+if (cidMatch) {
+  cid = cidMatch[1];
+  console.log("✅ CID trobat:", cid);
+} else {
+  console.warn("⚠️ CID no trobat");
+}
+
+// Extreu IMG
+const imgMatch = model.description && model.description.match(/IMG:\s*([a-z0-9]+)/i);
+if (imgMatch) {
+  imageCID = imgMatch[1];
+  console.log("🖼️ IMG trobat:", imageCID);
+} else {
+  console.warn("⚠️ IMG no trobat");
+}
+
+// Extreu MB
+const mbMatch = model.description && model.description.match(/MB:\s*([\d.]+)/i);
+if (mbMatch) {
+  fileSizeMB = parseFloat(mbMatch[1]);
+  console.log("📏 MB detectats:", fileSizeMB);
+} else {
+  console.warn("⚠️ MB no trobat a la descripció");
+}
+
+// --- Calcula el cost ---
+let cost = '';
+if (fileSizeMB !== null && !isNaN(fileSizeMB)) {
+  cost = Math.ceil(fileSizeMB);        // arrodoneix cap amunt els MB
+  cost = Math.max(1, cost);            // assegura com a mínim 1
+  cost = cost * 10;                    // cada MB → 10 BIMCoin
+  console.log("💰 Cost calculat:", cost);
+} else {
+  console.warn("⚠️ Cost no calculat, fileSizeMB invàlid:", fileSizeMB);
+}
+
 
 resultDiv.innerHTML += `
   <div class="hash-item">
     <b>#${i + 1} — ${model.filename}</b><br>
     <span class="hash">${model.hash}</span>
     <span>Versió: <b>${model.version}</b></span><br>
-    <span>Descripció: ${(model.description || '-').replace(/CID:\s*[a-z0-9]+/i, '').replace(/MB:\s*[\d.]+/i, '').replace(/\n+$/, '').trim()}</span><br>
+    <span>Descripció: ${(model.description || '-')
+      .replace(/CID:\s*[a-z0-9]+/i, '')
+      .replace(/IMG:\s*[a-z0-9]+/i, '')
+      .replace(/MB:\s*[\d.]+/i, '')
+      .replace(/\n+$/, '')
+      .trim()}</span><br>
     <span style="color:#777">Data: ${formatDate(model.datetime)}</span><br>
     <span style="color:#aaa">Author: ${model.author}</span>
-    ${cid ? `
-      <br>
-      <div style="display: flex; justify-content: center; align-items: center; gap: 1em; margin-top: 1.2em;">
-        <button 
-          class="download-btn" 
-          data-cid="${cid}" 
-          data-filename="${model.filename || 'model'}.ifc">
-          ⬇️ Descarregar ${(model.filename || 'model')}.IFC
-        </button>
-        ${cost ? `<span style="font-size:1.1em; color:#195186; background:#e7f6fa; border-radius:7px; padding:0.4em 0.8em; display:inline-block;">💰 ${cost} BIMCoin</span>` : ""}
+
+    ${imageCID ? `
+      <div style="display: flex; align-items: center; gap: 1.5em; margin-top: 1.2em; flex-wrap: wrap;">
+        <img src="https://gateway.lighthouse.storage/ipfs/${imageCID}" 
+             alt="Captura del model" 
+             style="max-width: 180px; border-radius: 0.6em; box-shadow: 0 2px 8px #0002; max-height: 160px;">
+        <div style="display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 0.6em;">
+          <button 
+            class="download-btn" 
+            data-cid="${cid}" 
+            data-filename="${model.filename || 'model'}.ifc">
+            ⬇️ Descarregar IFC
+          </button>
+          ${cost !== null ? `
+  <span style="font-size:1.1em; color:#195186; background:#e7f6fa; border-radius:7px; padding:0.4em 0.8em; display:inline-block;">
+    💰 ${cost} BIMCoin
+  </span>
+` : ""}
+        </div>
       </div>
     ` : ""}
   </div>
 `;
+
+
+
 
   });
 
@@ -410,8 +478,11 @@ function formatDate(datetime) {
 
       $("connect").onclick = connectWalletAndListHashes;
     });
+
+
+    
   </script>
+
+  
 </body>
 </html>
-
-

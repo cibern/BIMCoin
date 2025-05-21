@@ -186,6 +186,24 @@ nav { display: flex; justify-content: center; align-items: center; background: #
       Solució per arquitectes, enginyers i promotors.
     </p>
   </header>
+  <!-- Targeta fixa a la cantonada inferior dreta -->
+<div id="bimcoin-header-info" style="
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 999;
+  background: #195186;
+  padding: 0.8rem 1.2rem;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 0.95em;
+  box-shadow: 0 4px 16px #0002;
+  text-align: left;
+  max-width: 220px;
+">
+  💰 <strong>Saldo:</strong> <span id="walletBalance">-</span><br>
+  <!--🧱 <strong>Total:</strong> <span id="totalSupply">-</span> -->
+</div>
   <nav>
     <a href="index.html"  id="nav-home">Home</a>
     <a href="visor.html" class="active" id="nav-visor">Visor</a>
@@ -232,6 +250,64 @@ document.addEventListener("DOMContentLoaded", function() {
       renderLang(e.target.value);
     });
   });
+  async function updateBIMCoinInfo() {
+  if (!window.ethereum) {
+    console.warn("❗️ No hi ha MetaMask o provider disponible.");
+    return;
+  }
+
+  try {
+    console.log("🔌 Connectant amb provider...");
+    const provider = new BrowserProvider(window.ethereum);
+
+    console.log("🔐 Obtenint signer...");
+    const signer = await provider.getSigner();
+
+    const userAddress = await signer.getAddress();
+    console.log("👤 Adreça de l'usuari:", userAddress);
+
+    const contract = new Contract(BIMCOIN_ADDRESS, BIMCOIN_ABI, provider);
+    console.log("📄 Contracte inicialitzat correctament");
+
+    const [walletRaw, totalRaw, decimals] = await Promise.all([
+      contract.balanceOf(userAddress),
+      contract.totalSupply(),
+      contract.decimals()
+    ]);
+
+    console.log("💰 Raw wallet balance:", walletRaw.toString());
+    console.log("🏦 Raw total supply:", totalRaw.toString());
+    console.log("🔢 Decimals:", decimals);
+
+    const walletBalance = formatUnits(walletRaw.toString(), decimals);
+    const totalSupply = formatUnits(totalRaw.toString(), decimals);
+
+    console.log("✅ Formatejat wallet balance:", walletBalance);
+    console.log("✅ Formatejat total supply:", totalSupply);
+
+    // Actualitza el DOM
+    const walletElem = document.getElementById("walletBalance");
+    const totalElem = document.getElementById("totalSupply");
+
+    if (walletElem) {
+      walletElem.textContent = `${parseFloat(walletBalance).toFixed(2)} BIM`;
+    } else {
+      console.warn("⚠️ No s'ha trobat #walletBalance al DOM");
+    }
+
+    if (totalElem) {
+      totalElem.textContent = `${parseFloat(totalSupply).toFixed(2)} BIM`;
+    } else {
+      console.warn("⚠️ No s'ha trobat #totalSupply al DOM");
+    }
+
+  } catch (err) {
+    console.error("❌ Error carregant info BIMCoin:", err);
+  }
+}
+
+
+updateBIMCoinInfo();
 
   </script>
   
