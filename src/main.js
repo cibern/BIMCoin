@@ -4,11 +4,17 @@ import * as OBCF from "@thatopen/components-front";
 import * as BUIC from "@thatopen/ui-obc";
 import { BrowserProvider, Contract, formatUnits } from "ethers";
 import html2canvas from 'html2canvas';
+import * as THREE from "three";
+import { showModal, hideModal } from './modals.js';
 
 
 import lighthouse from '@lighthouse-web3/sdk';
 
 const LIGHTHOUSE_API_KEY = '75fbb6cf.d218f26d35d24b0aa509182068439be5';
+
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 async function uploadToLighthouse(file) {
   try {
@@ -18,7 +24,7 @@ async function uploadToLighthouse(file) {
     if (response && response.data && response.data.Hash) {
       const cid = response.data.Hash;
       // ALERT BONIC! També pots fer servir SweetAlert2 o similar per estilitzar
-      alert(`✅ Fitxer pujat correctament!\n\nCID: ${cid}`);
+      //alert(`✅ Fitxer pujat correctament!\n\nCID: ${cid}`);
 
       // Retorna el CID si vols utilitzar-lo després
       return cid;
@@ -54,6 +60,9 @@ async function main() {
 
   const cameraComponent = new OBC.SimpleCamera(components);
   world.camera = cameraComponent;
+  
+
+  
 
   viewport.addEventListener("resize", () => {
     rendererComponent.resize();
@@ -65,6 +74,8 @@ async function main() {
   
 
   await components.init();
+  
+console.log("🎮 Controls de càmera:", cameraComponent.controls);
 
   // --- IFC Loader i buffer real ---
   const ifcLoader = components.get(OBC.IfcLoader);
@@ -404,19 +415,25 @@ panelBIMCoin = BUI.Component.create(() => {
     alert("Si us plau, omple tots els camps!");
     return;
   }
+  showModal("📤 Pujant fitxer a IPFS...");
+  await delay(2000);
+  
 
   // 📤 Puja el fitxer a IPFS (Lighthouse)
   const file = new File([currentIFCBuffer], formData.filename || "model.ifc");
   let cid;
   try {
     cid = await uploadToLighthouse(file);
-    alert("Fitxer pujat a IPFS! CID: " + cid);
+    //alert("Fitxer pujat a IPFS! CID: " + cid);
   } catch (err) {
+    hideModal();
     alert("Error pujant el fitxer a IPFS: " + (err.message || err));
     return;
   }
 
   // 📸 Captura del visor com a imatge
+  showModal("📸 Capturant imatge...");
+  await delay(2000);
   let imageCid = null;
   try {
     const renderer = world.renderer.three;
@@ -425,18 +442,22 @@ panelBIMCoin = BUI.Component.create(() => {
     const imageBlob = base64ToBlob(dataURL, 'image/png');
     const imageFile = new File([imageBlob], "captura.png", { type: "image/png" });
     imageCid = await uploadToLighthouse(imageFile);
-    console.log("✅ Imatge pujada a IPFS amb CID:", imageCid);
+    //console.log("✅ Imatge pujada a IPFS amb CID:", imageCid);
   } catch (err) {
+    hideModal();
     alert("❌ Error capturant o pujant la imatge: " + (err.message || err));
   }
 
   // 🔐 Connecta amb MetaMask i prepara contractes
   if (!window.ethereum) {
+    hideModal();
     alert("Instal·la MetaMask primer!");
     return;
   }
 
   try {
+    showModal("🔌 Connectant amb MetaMask...");
+    await delay(2000);
     const provider = new BrowserProvider(window.ethereum);
     await provider.send("eth_requestAccounts", []);
     const signer = await provider.getSigner();
@@ -446,15 +467,20 @@ panelBIMCoin = BUI.Component.create(() => {
     const tokenContract = new Contract(BIMCOIN_ADDRESS, BIMCOIN_ABI, signer);
 
     // 💾 Calcular hash del model
+    showModal("🧾 Calculant hash...");
+    await delay(2000);
     const hashBuffer = await crypto.subtle.digest('SHA-256', currentIFCBuffer);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('').toLowerCase();
     console.log("🧾 Hash del model:", hashHex);
 
     // ❌ Evita duplicats
+    showModal("🔎 Comprovant si ja està registrat...");
+    await delay(2000);
     const alreadyRegistered = await registerContract.isModelRegistered(hashHex);
     if (alreadyRegistered) {
       const info = await registerContract.getModelInfo(hashHex);
+      hideModal();
       alert(
         "Aquest model ja està registrat!\n" +
         `Nom: ${info.filename}\nVersió: ${info.version}\nDescripció: ${info.description}\nData/hora: ${info.datetime}\nAutor: ${info.author}`
@@ -462,25 +488,33 @@ panelBIMCoin = BUI.Component.create(() => {
       return;
     }
 
+    showModal("💰 Verificant saldo de BIMCoin...");
+    await delay(2000);
     // 💰 Pagament amb BIMCoin
     const decimals = await tokenContract.decimals();
     const amount = BigInt(Math.floor(window.currentBIMCoinCost)) * (10n ** BigInt(decimals));
     const balance = await tokenContract.balanceOf(userAddress);
 
     if (balance < amount) {
-      alert("❌ No tens prou BIMCoins!");
+       hideModal();
+       alert("❌ No tens prou BIMCoins!");
       return;
     }
 
+    showModal("💸 Enviant pagament amb BIMCoin...");
+    await delay(2000);
     const txPayment = await tokenContract.transfer(CONTRACT_ADDRESS, amount);
-    alert("💸 Pagament amb BIMCoin enviat... Esperant confirmació...");
+    //alert("💸 Pagament amb BIMCoin enviat... Esperant confirmació...");
     await txPayment.wait();
 
     // 📝 Registra el model a la blockchain
+    showModal("⛓️ Registrant el model a la blockchain...");
+    await delay(2000);
     const fileSizeMB = window.currentFileSizeMB || 0;
     let desc = formData.description + `\nCID: ${cid}\nMB: ${fileSizeMB.toFixed(2)}`;
     if (imageCid) desc += `\nIMG: ${imageCid}`;
 
+    
     const tx = await registerContract.registerModel(
       hashHex,
       formData.filename,
@@ -495,7 +529,11 @@ panelBIMCoin = BUI.Component.create(() => {
     lastHash = hashHex;
     showHashBox = true;
     panelBIMCoin.update();
+     showModal("✅ Registrat correctament!");
+     await delay(2000);
+     setTimeout(hideModal, 3000);
   } catch (e) {
+    hideModal();
     alert("❌ Error durant el registre: " + (e.message || e));
   }
 };
