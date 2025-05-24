@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>Autenticació BIM IFC a Blockchain</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="crs/style.css">
   <style>
     body {
       font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
@@ -206,7 +207,7 @@
 }
 
   </style>
-  <script type="module" crossorigin src="/BIMCoin/assets/main-BldMeCd9.js"></script>
+  <script type="module" crossorigin src="/BIMCoin/assets/main-BrlGZccV.js"></script>
   <link rel="modulepreload" crossorigin href="/BIMCoin/assets/modulepreload-polyfill-B5Qt9EMX.js">
 </head>
 <body>
@@ -384,6 +385,21 @@ animate();
     <a href="faqs.html" id="nav-faq">FAQ's</a>
   </nav>
   <main>
+
+    <section id="download-section" style="margin-top: 2.5em;">
+  <h2>Descarrega el teu model autenticat</h2>
+  <form id="download-form" style="display: flex; flex-direction: column; gap: 1em; max-width: 480px;">
+    <label for="hash-input">Hash del model:</label>
+    <input type="text" id="hash-input" name="hash" placeholder="Enganxa el hash aquí..." required style="padding: 0.6em; border-radius: 6px; border: 1px solid #b7cee3;">
+    <button type="submit" style="background: #2379ca; color: #fff; padding: 0.8em; border: none; border-radius: 7px; font-size: 1em; cursor: pointer;">Descarrega model</button>
+  </form>
+  <div id="download-result" style="margin-top:1.4em;"></div>
+</section>
+
+
+
+
+
     <h2 id="why-title">Per què autentificar models IFC a la blockchain?</h2>
     <ul id="why-list">
       <!-- List dynamically injected -->

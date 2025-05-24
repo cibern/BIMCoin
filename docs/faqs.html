@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>Preguntes Freqüents | Autenticació BIM IFC a Blockchain</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../src/style.css">
   <style>
     body {
       font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
@@ -165,8 +166,8 @@
   text-align: left;
   max-width: 220px;
 ">
-  💰 <strong>Saldo:</strong> <span id="wallet-balance">-</span><br>
-  🧱 <strong>Total:</strong> <span id="bimcoin-total">-</span>
+  💰 <strong>Saldo:</strong> <span id="walletBalance">-</span><br>
+    <!--🧱 <strong>Total:</strong> <span id="totalSupply">-</span> -->
 </div>
   <nav>
     <a href="index.html" id="nav-home">Home</a>
@@ -248,10 +249,40 @@
       </div>
     </div>
 
+    <div class="faq-item">
+  <div class="faq-q">11. Com funcionen els pagaments i les transaccions amb MetaMask i la blockchain?</div>
+  <div class="faq-a">
+    <ol style="margin-left:1em;">
+      <li>
+        <b>Has de tenir ETH (Ether) a la teva wallet MetaMask.</b><br>
+        El gas fee o comissió de xarxa es paga sempre amb ETH, la moneda nativa d’Ethereum. No pots pagar directament amb euros (€) ni targeta de crèdit.
+      </li>
+      <li>
+        <b>El valor en € que veus a MetaMask és només informatiu.</b><br>
+        MetaMask mostra el cost estimat en euros per ajudar-te a entendre quant valdrà la comissió, però el pagament real es fa en ETH.
+      </li>
+      <li>
+        <b>Si un servei requereix BIMCoin (BIMC),</b><br>
+        per pagar serveis, certificacions o funcionalitats extra, pot ser necessari tenir BIMCoin (el token del projecte) a la teva wallet.
+      </li>
+      <li>
+        <b>Com aconseguir ETH o BIMCoin?</b><br>
+        Pots comprar ETH en un exchange (Binance, Coinbase, Bit2Me, etc.) i enviar-lo a la teva wallet MetaMask. Els BIMCoin pots aconseguir-los a través de la mateixa dApp o mitjançant altres canals que indiquem.
+      </li>
+    </ol>
+    <div style="background:#f5fcff; border-radius:8px; padding:0.8em 1.1em; color:#195186; margin-top:1em; font-size:0.98em;">
+      <b>Resum:</b> Connecta MetaMask, afegeix-hi ETH (per a les comissions de xarxa), compra/aconsegueix BIMCoin si cal, i confirma les transaccions des de MetaMask. <br>
+      Tots els pagaments es fan a la blockchain, amb ETH i/o BIMCoin. El control i la seguretat dels teus fons depèn de la teva wallet.
+    </div>
+  </div>
+</div>
+
+
   </main>
   <footer>
     &copy; 2025 Autoria BIM-Blockchain — Projecte en desenvolupament. |
     <a href="mailto:contacte@autoriabim.com" style="color:#195186;text-decoration:underline;" id="contact-link">Contacta'ns</a>
   </footer>
+  <script type="module" src="/BIMCoin/src/faqs.js"></script>
 </body>
 </html>

@@ -19,6 +19,7 @@
     "@thatopen/ui-obc": "^2.4.3",
     "ethers": "^6.14.1",
     "html2canvas": "^1.4.1",
+    "jspdf": "^3.0.1",
     "nft.storage": "^7.2.0",
     "pinata-web3": "^0.5.4"
   }
