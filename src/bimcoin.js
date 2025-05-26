@@ -17,6 +17,8 @@ export async function connectWallet() {
     alert("❌ Necessites MetaMask!");
     return null;
   }
+  // AFEGEIX AIXÒ:
+  const provider = new BrowserProvider(window.ethereum);
 
   const accounts = await provider.send("eth_accounts", []);
 if (!accounts.length) {
