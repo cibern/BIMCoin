@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8">
+  <title>Verifica l’autoria dels teus models BIM</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: 'Segoe UI', 'Roboto', Arial, sans-serif; margin: 0; padding: 0; background: #f6f8fa; color: #232b38; }
+    .container { max-width: 50vw; margin: auto; background: white; padding: 2em; border-radius: 16px; box-shadow: 0 2px 16px #0001; }
+    button { padding: 0.7em 1.5em; border-radius: 1em; border: none; background: #2379ca; color: white; font-size: 1em; cursor: pointer; margin-bottom: 1em; }
+    .hash-list { margin-top: 1em; }
+    .hash-item { background: #e7f0fa; border-radius: 1em; padding: 1em; margin-bottom: 1em; word-break: break-all; font-size: 1em; box-sizing: border-box; overflow-x: auto; max-width: 100%; align-items: flex-start; }
+    .hash-item .hash { font-family: monospace; color: #2379ca; display: block; margin-bottom: 0.3em; font-size: 0.97em; background: #d8e7f7; border-radius: 0.5em; padding: 0.25em 0.5em; word-break: break-all; }
+    .hash-item .download-btn { display: block; margin: 1.2em auto 0 auto; background: #2379ca; color: white; border: none; border-radius: 1em; padding: 0.8em 2em; font-size: 1em; cursor: pointer; font-weight: 500; box-shadow: 0 2px 6px #124c8d14; transition: background 0.18s; }
+    .hash-item .download-btn:hover { background: #185999; }
+    @media (max-width: 900px) { .container { max-width: 97vw; } }
+    .alert { color: #c00; }
+    .info { color: #777; }
+    @media (max-width: 700px) { .container { padding: 1em; } .hash-item { padding: 0.6em; } }
+    #search { width: 100%; padding: 0.6em 1em; font-size: 1em; border-radius: 0.7em; border: 1px solid #d7e1ef; margin-bottom: 1em; display: none; }
+    #search.visible { display: block; }
+    header { background: linear-gradient(90deg, #124c8d 0%, #3496e2 100%); color: #fff; padding: 2.4rem 0 2rem 0; text-align: center; box-shadow: 0 3px 12px rgba(27,77,145,0.07); position: relative; }
+    .logo-container { display: flex; justify-content: center; align-items: center; margin-bottom: 1.2rem; gap: 1.3em; }
+    .logo-svg { width: 56px; height: 56px; background: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2.5px solid #3496e2; box-shadow: 0 4px 22px #124c8d23; }
+    .logo-title { font-weight: 700; font-size: 2.1rem; color: #fff; letter-spacing: 0.03em; margin-left: 0.1em; text-shadow: 0 2px 10px #19518635; }
+    #lang-selector { position: absolute; top: 24px; right: 30px; padding: 0.32em 1.2em; border-radius: 6px; background: #fff; color: #124c8d; border: none; font-size: 1em; box-shadow: 0 2px 10px #124c8d19; font-weight: 500; cursor: pointer; }
+    nav { display: flex; justify-content: center; align-items: center; background: #f5faff; border-bottom: 1.5px solid #e6ecf6; gap: 0.8em; padding: 0.6em 0 0.3em 0; font-size: 1.09em; position: relative; z-index: 2; }
+    nav a { color: #195186; text-decoration: none; padding: 0.46em 1.16em; border-radius: 7px; font-weight: 500; transition: background 0.14s, color 0.14s; letter-spacing: 0.02em; }
+    nav a:hover, nav a.active { background: #d7ebfc; color: #124c8d; }
+  </style>
+  <script type="module" crossorigin src="/BIMCoin/assets/verify-BlzgZLv8.js"></script>
+  <link rel="modulepreload" crossorigin href="/BIMCoin/assets/modulepreload-polyfill-B5Qt9EMX.js">
+  <link rel="modulepreload" crossorigin href="/BIMCoin/assets/translations-l0sNRNKZ.js">
+  <link rel="modulepreload" crossorigin href="/BIMCoin/assets/modals-D-Pj_INv.js">
+  <link rel="modulepreload" crossorigin href="/BIMCoin/assets/bimcoin-DS6TUAdR.js">
+</head>
+<body>
+  <header>
+    <select id="lang-selector">
+      <option value="ca">Català</option>
+      <option value="es">Español</option>
+      <option value="en">English</option>
+      <option value="fr">Français</option>
+      <option value="it">Italiano</option>
+      <option value="de">Deutsch</option>
+    </select>
+    <div class="logo-container">
+      <div class="logo-svg">
+        <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
+          <rect x="2" y="2" width="40" height="40" rx="11" fill="#3496e2" stroke="#fff" stroke-width="3"/>
+          <path d="M14 28L22 14L30 28H14Z" fill="#fff" stroke="#124c8d" stroke-width="2"/>
+        </svg>
+      </div>
+      <span class="logo-title" id="logo-title">Autoria BIM-Blockchain</span>
+    </div>
+    <p id="subtitle">
+      Protegeix la propietat intel·lectual i la validesa dels teus models BIM (IFC) amb registre a la blockchain.<br>
+      Solució per arquitectes, enginyers i promotors.
+    </p>
+  </header>
+  <!-- Targeta fixa a la cantonada inferior dreta -->
+  <div id="bimcoin-header-info" style="
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    z-index: 999;
+    background: #195186;
+    padding: 0.8rem 1.2rem;
+    border-radius: 10px;
+    color: #fff;
+    font-size: 0.95em;
+    box-shadow: 0 4px 16px #0002;
+    text-align: left;
+    max-width: 220px;">
+    💰 <strong>Saldo:</strong> <span id="walletBalance">-</span><br>
+    <!--🧱 <strong>Total:</strong> <span id="totalSupply">-</span> -->
+  </div>
+  <nav>
+    <a href="index.html"  id="nav-home">Home</a>
+    <a href="visor.html" id="nav-visor">Visor</a>
+    <a href="verify.html" class="active" id="nav-verify">Comprovar hash</a>
+    <a href="porpuse.html" id="nav-objectiu">Propòsit</a>
+    <a href="faqs.html" id="nav-faq">FAQ's</a>
+  </nav>
+  <div class="container">
+    <h2 id="verify-title">Verifica i consulta l’autoria</h2>
+    <p id="verify-desc">Prem el botó per veure els últims models IFC registrats.</p>
+    <button id="connect">Consulta IFC registrats a la BlockChain</button>
+    <div id="address"></div>
+    <input id="search" type="text" placeholder="Cerca per nom, versió, descripció, data, autor o hash...">
+    <div id="result" class="hash-list"></div>
+    <div class="info" style="margin-top:2em;">
+      <b>Contracte:</b> <span id="contractAddr"></span>
+    </div>
+  </div>
+  <!-- IMPORTANT: Només aquest import -->
+
+</body>
+</html>
