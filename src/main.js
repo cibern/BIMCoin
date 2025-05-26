@@ -8,6 +8,7 @@ import * as THREE from "three";
 import { jsPDF } from "jspdf";
 import { generarCertificatPDF } from './pdf.js';
 import { showModal, hideModal, showAlertModal, renderModelInfoHTML } from './modals.js';
+import './translations.js'; // Això l’inclou al bundle
 
 
 
