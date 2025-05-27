@@ -1,8 +1,19 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
+import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 export default defineConfig({
   base: '/BIMCoin/',
+  plugins: [
+    viteStaticCopy({
+      targets: [
+        {
+          src: '.nojekyll',   // Fitxer a copiar
+          dest: '.'           // El destí dins de la carpeta `docs/`
+        }
+      ]
+    })
+  ],
   build: {
     outDir: 'docs',
     rollupOptions: {
@@ -21,6 +32,7 @@ export default defineConfig({
     }
   }
 });
+
 
 
 
