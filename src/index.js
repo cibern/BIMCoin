@@ -1,4 +1,4 @@
-import translations from "./translations.js";
+import { translations } from './translations.js';
 
 // Helper curt per seleccionar per id
 const $ = id => document.getElementById(id);

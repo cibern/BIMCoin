@@ -5,6 +5,7 @@ export default defineConfig({
   publicDir: 'public',
   base: '/BIMCoin/',
   build: {
+    assetsDir: '', // <-- això posa els assets a /dist directament!
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html'),
@@ -16,5 +17,6 @@ export default defineConfig({
     }
   }
 });
+
 
 

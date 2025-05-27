@@ -1,4 +1,4 @@
-const translations = {
+export const translations = {
       ca: {
         logo: "Autoria BIM-Blockchain",
         subtitle: "Protegeix la propietat intel·lectual i la validesa dels teus models BIM (IFC) amb registre a la blockchain.<br>Solució per arquitectes, enginyers i promotors.",
@@ -385,6 +385,5 @@ const translations = {
       }
     };
 
-    //const $ = id => document.getElementById(id);
-    export default translations;
+
 
