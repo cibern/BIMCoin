@@ -1,11 +1,11 @@
+// vite.config.js
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
 
 export default defineConfig({
-  publicDir: 'public',
-  base: '/BIMCoin/',
+  base: '/BIMCoin/', // Correcte per a GitHub Pages en el repositori BIMCoin
   build: {
-    assetsDir: '', // <-- això posa els assets a /dist directament!
+    outDir: 'docs', // On es generen els fitxers
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html'),
@@ -17,6 +17,7 @@ export default defineConfig({
     }
   }
 });
+
 
 
 
