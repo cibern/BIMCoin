@@ -1,13 +1,20 @@
-import ifcopenshell
-
-model = ifcopenshell.open(r"C:\Users\ciber\OneDrive\Documents\prototip\2025\www\001.ifc")
-model.write(r"C:\Users\ciber\OneDrive\Documents\prototip\2025\www\001.dxf")
-
-
 import subprocess
+import sys
+import FreeCAD
+import Import
+import Part
 
-ifc_file = r"C:\Users\ciber\OneDrive\Documents\prototip\2025\www\001.ifc"
-dxf_file = r"C:\Users\ciber\OneDrive\Documents\prototip\2025\www\001.obj"
-ifcconvert_exe = r"C:\Prototips\BIMCoin\BimCoin\IfcConvert.exe"  # Ajusta la ruta!
+ifc_path = sys.argv[1]
+obj_path = ifc_path.replace('.ifc', '.obj')
+dxf_path = ifc_path.replace('.ifc', '.dxf')
 
-subprocess.run([ifcconvert_exe, ifc_file, dxf_file])
+# Convertir IFC → OBJ
+subprocess.run(["ifcconvert", ifc_path, obj_path])
+
+# OBJ → DXF amb FreeCAD
+doc = FreeCAD.newDocument()
+Part.insert(obj_path, doc.Name)
+Import.export(doc.Objects, dxf_path)
+
+print("✅ DXF creat:", dxf_path)
+

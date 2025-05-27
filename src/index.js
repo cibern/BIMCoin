@@ -80,17 +80,17 @@ async function updateBIMCoinInfo() {
   }
 
   try {
-    console.log("🔌 Connectant amb provider...");
+    //console.log("🔌 Connectant amb provider...");
     const provider = new BrowserProvider(window.ethereum);
 
-    console.log("🔐 Obtenint signer...");
+    //console.log("🔐 Obtenint signer...");
     const signer = await provider.getSigner();
 
     const userAddress = await signer.getAddress();
-    console.log("👤 Adreça de l'usuari:", userAddress);
+    //console.log("👤 Adreça de l'usuari:", userAddress);
 
     const contract = new Contract(BIMCOIN_ADDRESS, BIMCOIN_ABI, provider);
-    console.log("📄 Contracte inicialitzat correctament");
+    //console.log("📄 Contracte inicialitzat correctament");
 
     const [walletRaw, totalRaw, decimals] = await Promise.all([
       contract.balanceOf(userAddress),
@@ -98,15 +98,15 @@ async function updateBIMCoinInfo() {
       contract.decimals()
     ]);
 
-    console.log("💰 Raw wallet balance:", walletRaw.toString());
-    console.log("🏦 Raw total supply:", totalRaw.toString());
-    console.log("🔢 Decimals:", decimals);
+    //console.log("💰 Raw wallet balance:", walletRaw.toString());
+    //console.log("🏦 Raw total supply:", totalRaw.toString());
+    //console.log("🔢 Decimals:", decimals);
 
     const walletBalance = formatUnits(walletRaw.toString(), decimals);
     const totalSupply = formatUnits(totalRaw.toString(), decimals);
 
-    console.log("✅ Formatejat wallet balance:", walletBalance);
-    console.log("✅ Formatejat total supply:", totalSupply);
+    //console.log("✅ Formatejat wallet balance:", walletBalance);
+    //console.log("✅ Formatejat total supply:", totalSupply);
 
     // Actualitza el DOM
     const walletElem = document.getElementById("walletBalance");
@@ -121,7 +121,7 @@ async function updateBIMCoinInfo() {
     if (totalElem) {
       totalElem.textContent = `${parseFloat(totalSupply).toFixed(2)} BIMC`;
     } else {
-      console.warn("⚠️ No s'ha trobat #totalSupply al DOM");
+      //console.warn("⚠️ No s'ha trobat #totalSupply al DOM");
     }
 
   } catch (err) {
@@ -130,6 +130,46 @@ async function updateBIMCoinInfo() {
 }
 
 updateBIMCoinInfo();
+
+window.updateTransparencyInfo = updateTransparencyInfo;
+async function updateTransparencyInfo() {
+  try {
+    if (!window.ethereum) throw new Error("MetaMask no detectat");
+
+    const provider = new BrowserProvider(window.ethereum);
+    const contract = new Contract(BIMCOIN_ADDRESS, BIMCOIN_ABI, provider);
+    const decimals = await contract.decimals();
+
+    // Consulta events Transfer
+    const filter = contract.filters.Transfer();
+    const logs = await contract.queryFilter(filter);
+
+    // Número total de transaccions
+    const txCount = logs.length;
+
+    // Total BIMCoins transferits (formatUnits retorna string decimal)
+    let totalVolume = logs.reduce((sum, log) => sum + log.args.value, 0n);
+    let totalVolumeHuman = formatUnits(totalVolume, decimals);
+    // → Mostra només la part sencera (sense decimals)
+    let totalVolumeRounded = Math.floor(Number(totalVolumeHuman));
+
+    // Darrera transacció
+    let lastTx = logs.length ? logs[logs.length - 1] : null;
+    let lastTxInfo = lastTx
+      ? `Hash: <a href="https://sepolia.etherscan.io/tx/${lastTx.transactionHash}" target="_blank" style="color:#2379ca;">${lastTx.transactionHash.slice(0, 10)}...</a>`
+      : "—";
+
+    // Actualitza la web
+    document.getElementById("tx-count").textContent = txCount;
+    document.getElementById("tx-volume").textContent = totalVolumeRounded + " BIMC";
+    document.getElementById("last-tx").innerHTML = lastTxInfo;
+  } catch (err) {
+    document.getElementById("tx-count").textContent = "-";
+    document.getElementById("tx-volume").textContent = "-";
+    document.getElementById("last-tx").textContent = "-";
+  }
+}
+updateTransparencyInfo();
 
 
 
