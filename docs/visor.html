@@ -6,13 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- <script type="module" src="translations.js"></script>-->
   
-  
 
-
-<script>
-  console.log('translations:', window.translations);
-  
-</script>
 
   <!-- Estils necessaris -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@thatopen/ui@latest/dist/default.css" />
@@ -227,97 +221,10 @@ nav { display: flex; justify-content: center; align-items: center; background: #
     <!-- Aquí va el teu visor BIM -->
   </div>
   
-
-  
-
-
    <!-- Script principal -->
   <script>
     
 
-document.addEventListener("DOMContentLoaded", function() {
-    function byId(id) { return document.getElementById(id); }
-
-    function renderLang(lang) {
-      const t = translations[lang];
-      if (byId("logo-title")) byId("logo-title").textContent = t.logo;
-      if (byId("subtitle")) byId("subtitle").innerHTML = t.subtitle;
-      if (byId("contact-link")) byId("contact-link").textContent = t.contact;
-    }
-
-    function getDefaultLang() {
-      const nav = navigator.language || "ca";
-      if (translations[nav.slice(0,2)]) return nav.slice(0,2);
-      return "ca";
-    }
-
-    // Inicialitza idioma per defecte
-    const initLang = getDefaultLang();
-    byId("lang-selector").value = initLang;
-    renderLang(initLang);
-
-    byId("lang-selector").addEventListener("change", e => {
-      renderLang(e.target.value);
-    });
-  });
-  async function updateBIMCoinInfo() {
-  if (!window.ethereum) {
-    console.warn("❗️ No hi ha MetaMask o provider disponible.");
-    return;
-  }
-
-  try {
-    console.log("🔌 Connectant amb provider...");
-    const provider = new BrowserProvider(window.ethereum);
-
-    console.log("🔐 Obtenint signer...");
-    const signer = await provider.getSigner();
-
-    const userAddress = await signer.getAddress();
-    console.log("👤 Adreça de l'usuari:", userAddress);
-
-    const contract = new Contract(BIMCOIN_ADDRESS, BIMCOIN_ABI, provider);
-    console.log("📄 Contracte inicialitzat correctament");
-
-    const [walletRaw, totalRaw, decimals] = await Promise.all([
-      contract.balanceOf(userAddress),
-      contract.totalSupply(),
-      contract.decimals()
-    ]);
-
-    console.log("💰 Raw wallet balance:", walletRaw.toString());
-    console.log("🏦 Raw total supply:", totalRaw.toString());
-    console.log("🔢 Decimals:", decimals);
-
-    const walletBalance = formatUnits(walletRaw.toString(), decimals);
-    const totalSupply = formatUnits(totalRaw.toString(), decimals);
-
-    console.log("✅ Formatejat wallet balance:", walletBalance);
-    console.log("✅ Formatejat total supply:", totalSupply);
-
-    // Actualitza el DOM
-    const walletElem = document.getElementById("walletBalance");
-    const totalElem = document.getElementById("totalSupply");
-
-    if (walletElem) {
-      walletElem.textContent = `${parseFloat(walletBalance).toFixed(2)} BIM`;
-    } else {
-      console.warn("⚠️ No s'ha trobat #walletBalance al DOM");
-    }
-
-    if (totalElem) {
-      totalElem.textContent = `${parseFloat(totalSupply).toFixed(2)} BIM`;
-    } else {
-      console.warn("⚠️ No s'ha trobat #totalSupply al DOM");
-    }
-
-  } catch (err) {
-    console.error("❌ Error carregant info BIMCoin:", err);
-  }
-}
-
-
-updateBIMCoinInfo();
 
   </script>
 

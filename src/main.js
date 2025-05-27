@@ -8,7 +8,9 @@ import * as THREE from "three";
 import { jsPDF } from "jspdf";
 import { generarCertificatPDF } from './pdf.js';
 import { showModal, hideModal, showAlertModal, renderModelInfoHTML } from './modals.js';
-import './translations.js'; // Això l’inclou al bundle
+import { translations } from "./translations.js"; // O el path correcte
+
+
 
 
 
@@ -794,138 +796,9 @@ panelBIMCoin = BUI.Component.create(() => {
     if (model.hasProperties) await indexer.process(model);
   });
 }
-/*
-function showProgressBar() {
-  document.getElementById('bimcoin-progress-bar-wrap').style.display = 'block';
-  setProgressBar(0);
-}
-function hideProgressBar() {
-  document.getElementById('bimcoin-progress-bar-wrap').style.display = 'none';
-}
-function setProgressBar(percent) {
-  document.getElementById('bimcoin-progress-bar').style.width = `${percent}%`;
-}
-*/
-
 
 main();
 
-async function addPlansPanel(model) {
-  // Elimina el panell anterior si ja existeix!
-  const oldPanel = document.getElementById("plans-panel");
-  if (oldPanel) oldPanel.remove();
-
-  // PREPARA COMPONENTS
-  const plans = components.get(OBCF.Plans);
-  plans.world = world;
-
-  try {
-    await plans.generate(model);
-    if (!plans.list || plans.list.length === 0) {
-      alert("El model IFC s'ha carregat però NO s'han trobat plantes (storeys).");
-      return;
-    }
-  } catch (e) {
-    alert("No s'ha pogut generar els plànols per aquest model IFC. Potser la seva estructura no conté plantes o la jerarquia no és correcta.");
-    return;
-  }
-
-  // Set up CLASSIFIER, CULLER, CLIP EDGES
-  const classifier = components.get(OBC.Classifier);
-  classifier.byModel(model.uuid, model);
-  classifier.byEntity(model);
-
-  const modelItems = classifier.find({ models: [model.uuid] });
-
-  // Elements gruixuts (parets)
-  const thickItems = classifier.find({ entities: ["IFCWALLSTANDARDCASE", "IFCWALL"] });
-  // Elements fins (portes, finestres, etc)
-  const thinItems = classifier.find({ entities: ["IFCDOOR", "IFCWINDOW", "IFCPLATE", "IFCMEMBER"] });
-
-  const edges = components.get(OBCF.ClipEdges);
-  const fragments = components.get(OBC.FragmentsManager);
-
-  // Crea estils "thick" i "thin"
-  const grayFill = new THREE.MeshBasicMaterial({ color: "gray", side: 2 });
-  const blackLine = new THREE.LineBasicMaterial({ color: "black" });
-  const blackOutline = new THREE.MeshBasicMaterial({ color: "black", opacity: 0.5, side: 2, transparent: true });
-  edges.styles.create("thick", new Set(), world, blackLine, grayFill, blackOutline);
-
-  for (const fragID in thickItems) {
-    const foundFrag = fragments.list.get(fragID);
-    if (!foundFrag) continue;
-    const { mesh } = foundFrag;
-    edges.styles.list.thick.fragments[fragID] = new Set(thickItems[fragID]);
-    edges.styles.list.thick.meshes.add(mesh);
-  }
-  edges.styles.create("thin", new Set(), world);
-  for (const fragID in thinItems) {
-    const foundFrag = fragments.list.get(fragID);
-    if (!foundFrag) continue;
-    const { mesh } = foundFrag;
-    edges.styles.list.thin.fragments[fragID] = new Set(thinItems[fragID]);
-    edges.styles.list.thin.meshes.add(mesh);
-  }
-  await edges.update(true);
-
-  // Highlighter & Culling
-  const highlighter = components.get(OBCF.Highlighter);
-  highlighter.setup({ world });
-  const cullers = components.get(OBC.Cullers);
-  const culler = cullers.create(world);
-  for (const fragment of model.items) culler.add(fragment.mesh);
-  culler.needsUpdate = true;
-  world.camera.controls.addEventListener("sleep", () => { culler.needsUpdate = true; });
-
-  // UI PANEL de PLANS
-  const panel = BUI.Component.create(() => {
-    // Variables d'estat
-    const minGloss = world.renderer.postproduction.customEffects.minGloss;
-    const whiteColor = new THREE.Color("white");
-    const defaultBackground = world.scene.three.background;
-
-    // Llistat de botons per a cada planta
-    const planButtons = plans.list.map(plan => BUI.html`
-      <bim-button label="${plan.name}"
-        @click=${() => {
-          world.renderer.postproduction.customEffects.minGloss = 0.1;
-          highlighter.backupColor = whiteColor;
-          classifier.setColor(modelItems, whiteColor);
-          world.scene.three.background = whiteColor;
-          plans.goTo(plan.id);
-          culler.needsUpdate = true;
-        }}></bim-button>
-    `);
-
-    // Botó per sortir a 3D
-    const exitButton = BUI.html`
-      <bim-button label="Torna a 3D"
-        style="margin-top:1rem;"
-        @click=${() => {
-          highlighter.backupColor = null;
-          highlighter.clear();
-          world.renderer.postproduction.customEffects.minGloss = minGloss;
-          classifier.resetColor(modelItems);
-          world.scene.three.background = defaultBackground;
-          plans.exitPlanView();
-          culler.needsUpdate = true;
-        }}>
-      </bim-button>
-    `;
-
-    return BUI.html`
-      <bim-panel id="plans-panel" label="Plantes IFC" style="max-width: 32rem;">
-        <bim-panel-section label="Llistat de plantes">
-          ${planButtons}
-          ${exitButton}
-        </bim-panel-section>
-      </bim-panel>
-    `;
-  });
-
-  // Afegeix el panel a la pàgina
-  document.body.append(panel);
-}
 
 function base64ToBlob(dataURL, mimeType) {
   const byteString = atob(dataURL.split(',')[1]);

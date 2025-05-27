@@ -6,8 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   
   
-  
-  
   <style>
     body {
       font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
@@ -210,125 +208,15 @@
 }
 
   </style>
-  <script type="module" crossorigin src="/BIMCoin/main-DOphrmS3.js"></script>
+  <script type="module" crossorigin src="/BIMCoin/main-9Am0OLuA.js"></script>
   <link rel="modulepreload" crossorigin href="/BIMCoin/modulepreload-polyfill-B5Qt9EMX.js">
+  <link rel="modulepreload" crossorigin href="/BIMCoin/index-BIZAE8L5.js">
 </head>
 <body>
   
   <canvas id="bgNetwork"
   style="position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:-1;pointer-events:none;opacity:0.14;"></canvas>
   
-  
-<script>
-  
-const NODE_COUNT = 32;
-const LINK_DISTANCE = 290;
-const RADIUS_MIN = 4, RADIUS_MAX = 12;
-const COLORS = ['#3496e2', '#124c8d', '#195186', '#2379ca'];
-const nodes = [];
-const links = [];
-
-function rand(min, max) { return min + Math.random() * (max - min); }
-
-function resizeCanvas() {
-  const dpr = window.devicePixelRatio || 1;
-  canvas.width = window.innerWidth * dpr;
-  canvas.height = window.innerHeight * dpr;
-  canvas.style.width = window.innerWidth + "px";
-  canvas.style.height = window.innerHeight + "px";
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-}
-
-function createNodes() {
-  nodes.length = 0;
-  for (let i = 0; i < NODE_COUNT; i++) {
-    // Nodes tenen posició inicial i es mouen al voltant
-    const x0 = rand(0, window.innerWidth);
-    const y0 = rand(0, window.innerHeight);
-    nodes.push({
-      x0, y0, // punt inicial
-      x: x0, y: y0, // posició actual
-      r: rand(RADIUS_MIN, RADIUS_MAX),
-      c: COLORS[Math.floor(rand(0, COLORS.length))],
-      t: rand(0, 1000), // temps desfasat
-      amp: rand(18, 60) // amplitud de moviment
-    });
-  }
-}
-
-function createLinks() {
-  links.length = 0;
-  for (let i = 0; i < NODE_COUNT; i++) {
-    for (let j = i + 1; j < NODE_COUNT; j++) {
-      const dx = nodes[i].x - nodes[j].x;
-      const dy = nodes[i].y - nodes[j].y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist < LINK_DISTANCE) {
-        links.push([i, j]);
-      }
-    }
-  }
-}
-
-function animate() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  const time = performance.now() * 0.0005;
-
-  // Nodes fluctuen suaument al voltant del seu punt inicial
-  for (const n of nodes) {
-    n.x = n.x0 + Math.sin(time + n.t) * n.amp * 0.8 + Math.cos(time * 0.9 + n.t) * n.amp * 0.5;
-    n.y = n.y0 + Math.cos(time + n.t * 0.8) * n.amp * 0.6 + Math.sin(time * 0.8 + n.t * 0.9) * n.amp * 0.5;
-
-    // Si algun node se'n va massa, torna al centre de la pantalla (opcional)
-    if (n.x < -60 || n.x > window.innerWidth + 60) n.x0 = rand(0, window.innerWidth);
-    if (n.y < -60 || n.y > window.innerHeight + 60) n.y0 = rand(0, window.innerHeight);
-  }
-
-  createLinks();
-
-  // Dibuixa línies
-  ctx.save();
-  ctx.globalAlpha = 0.34;
-  for (const [a, b] of links) {
-    ctx.strokeStyle = "#2379ca";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(nodes[a].x, nodes[a].y);
-    ctx.lineTo(nodes[b].x, nodes[b].y);
-    ctx.stroke();
-  }
-  ctx.restore();
-
-  // Dibuixa nodes
-  for (const n of nodes) {
-    ctx.beginPath();
-    ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
-    ctx.fillStyle = n.c;
-    ctx.globalAlpha = 0.92;
-    ctx.shadowBlur = 5;
-    ctx.shadowColor = n.c;
-    ctx.fill();
-    ctx.shadowBlur = 0;
-  }
-  ctx.globalAlpha = 1;
-  requestAnimationFrame(animate);
-}
-
-const canvas = document.getElementById("bgNetwork");
-const ctx = canvas.getContext("2d");
-
-window.addEventListener("resize", () => {
-  resizeCanvas();
-  createNodes();
-  createLinks();
-});
-resizeCanvas();
-createNodes();
-createLinks();
-animate();
-</script>
-
-
 
   <header style="position: relative; background: linear-gradient(90deg, #124c8d 0%, #3496e2 100%); color: #fff; padding: 2.4rem 0 2rem 0; text-align: center; box-shadow: 0 3px 12px rgba(27,77,145,0.07);">
   <!-- Idiomes -->
@@ -388,6 +276,8 @@ animate();
     <a href="porpuse.html" id="nav-objectiu">Propòsit</a>
     <a href="faqs.html" id="nav-faq">FAQ's</a>
   </nav>
+
+  
   <main>
 
     <section id="download-section" style="margin-top: 2.5em;">
@@ -493,46 +383,7 @@ animate();
   <script>
     
 
-    function renderLang(lang) {
-      const t = translations[lang];
-      $("logo-title").textContent = t.logo;
-      $("subtitle").innerHTML = t.subtitle;
-      $("why-title").textContent = t.whyTitle;
-      $("why-list").innerHTML = t.whyList.map(x => `<li>${x}</li>`).join('');
-      $("how-title").textContent = t.howTitle;
-      $("how-list").innerHTML = t.howList.map(x => `<li>${x}</li>`).join('');
-      $("cta-desc").textContent = t.ctaDesc;
-      $("cta-link").textContent = t.ctaBtn;
-      $("cta-help").innerHTML = t.ctaHelp;
-      $("who-title").textContent = t.whoTitle;
-      $("who-list").innerHTML = t.whoList.map(x => `<li>${x}</li>`).join('');
-      $("adv-title").textContent = t.advTitle;
-      $("adv-list").innerHTML = t.advList.map(x => `<li>${x}</li>`).join('');
-      $("faq-title").textContent = t.faqTitle;
-      $("faq-list").innerHTML = t.faq.map(f => `
-        <div class="faq-item">
-          <div class="faq-q">${f.q}</div>
-          <div class="faq-a">${f.a}</div>
-        </div>
-      `).join('');
-      $("contact-link").textContent = t.contact;
-      document.documentElement.lang = lang;
-    }
-
-    // Inicialitza amb català, o idioma del navegador si està disponible
-    function getDefaultLang() {
-      const nav = navigator.language || "ca";
-      if (translations[nav.slice(0,2)]) return nav.slice(0,2);
-      return "ca";
-    }
-    const initLang = getDefaultLang();
-    $("lang-selector").value = initLang;
-    renderLang(initLang);
-
-    $("lang-selector").addEventListener("change", e => {
-      renderLang(e.target.value);
-    });
-
+   
     
   </script>
  
