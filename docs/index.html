@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   
   
+  
   <style>
     body {
       font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
@@ -208,8 +209,9 @@
 }
 
   </style>
-  <script type="module" crossorigin src="/BIMCoin/assets/main-CXPkXRPj.js"></script>
+  <script type="module" crossorigin src="/BIMCoin/assets/main-DlxMmRTA.js"></script>
   <link rel="modulepreload" crossorigin href="/BIMCoin/assets/modulepreload-polyfill-B5Qt9EMX.js">
+  <link rel="modulepreload" crossorigin href="/BIMCoin/assets/blockchainConfig-nCfmhYd7.js">
   <link rel="modulepreload" crossorigin href="/BIMCoin/assets/index-BIZAE8L5.js">
 </head>
 <body>
@@ -296,24 +298,29 @@
     </div>
     <!-- Targeta de transparència -->
     <div id="transparency-info" style="
-      flex:1 1 220px;
-      min-width:220px;
-      max-width:300px;
-      background: #eaf6fe;
-      padding: 1.1em 1.3em;
-      border-radius: 13px;
-      color: #195186;
-      font-size: 0.97em;
-      box-shadow: 0 4px 16px #124c8d0a;
-      text-align: left;
-      margin-top:1.5em;
-      margin-bottom:0.7em;
-    ">
-      <div style="font-weight:600; color:#2379ca; margin-bottom:0.6em;">📊 Activitat recent BIMCoin</div>
-      <div>🔁 <b>Transaccions:</b> <span id="tx-count">...</span></div>
-      <div>💸 <b>BIMCoins moguts:</b> <span id="tx-volume">...</span></div>
-      <div>🕒 <b>Darrera transacció:</b> <span id="last-tx">...</span></div>
-    </div>
+  flex:1 1 220px;
+  min-width:220px;
+  max-width:280px;
+  background: #eaf6fe;
+  padding: 1.1em 1.3em;
+  border-radius: 13px;
+  color: #195186;
+  font-size: 0.97em;
+  box-shadow: 0 4px 16px #124c8d0a;
+  text-align: left;
+  margin-top:1.5em;
+  margin-bottom:0.7em;
+">
+  <div style="font-weight:600; color:#2379ca; margin-bottom:0.6em;">📊 Transparència BIMCoin</div>
+  <div>🔁 <b>Transaccions:</b> <span id="tx-count">...</span></div>
+  <div>💸 <b>BIMCoins moguts:</b> <span id="tx-volume">...</span></div>
+  <div>🧑‍💼 <b>Usuaris únics:</b> <span id="tx-holders">...</span></div>
+  <div>🏦 <b>Saldo contracte:</b> <span id="contract-balance">...</span></div>
+  <div>🕒 <b>Darrera transacció:</b> <span id="last-tx">...</span></div>
+  <div>🕒 <b>Quantitat de models IFC registrats:</b> <span id="num-models">...</span></div>
+
+</div>
+
   </div>
 </section>
 <hr>
@@ -371,6 +378,7 @@
 
 
 </script>
+
 
 </html>
 

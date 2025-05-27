@@ -1,24 +1,16 @@
 import { updateBIMCoinInfo } from './bimcoin.js';
 import { showModal, hideModal } from './modals.js';
 
-
+import {
+  CONTRACT_ADDRESS,
+  BIMCOIN_ADDRESS,
+  REGISTRY_ADDRESS,
+  BIMCOIN_ABI,
+  REGISTRY_ABI,
+  CONTRACT_ABI
+} from './blockchainConfig.js';
 // L'adreça del contracte de registre de models
-const contractAddress = "0x03c89df2366f99C8e4E4C9010143d54064c0E893";
-const CONTRACT_ABI = [
-  {
-    "anonymous": false,
-    "inputs": [
-      { "indexed": false, "internalType": "string", "name": "hash", "type": "string" },
-      { "indexed": false, "internalType": "string", "name": "filename", "type": "string" },
-      { "indexed": false, "internalType": "string", "name": "version", "type": "string" },
-      { "indexed": false, "internalType": "string", "name": "description", "type": "string" },
-      { "indexed": false, "internalType": "string", "name": "datetime", "type": "string" },
-      { "indexed": true,  "internalType": "address", "name": "author", "type": "address" }
-    ],
-    "name": "ModelRegistered",
-    "type": "event"
-  }
-];
+
 
 let lastEvents = [];
 
@@ -28,7 +20,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Mostra adreça contracte
   const contractAddrElem = document.getElementById("contractAddr");
-  if (contractAddrElem) contractAddrElem.textContent = contractAddress;
+  if (contractAddrElem) contractAddrElem.textContent = CONTRACT_ADDRESS;
 
   // Botó connectar i llistar models
   const connectBtn = document.getElementById("connect");
@@ -62,7 +54,7 @@ async function connectWalletAndListHashes() {
 
   addressDiv.innerHTML = "<b>Adreça connectada:</b> " + userAddress;
 
-  const contract = new Contract(contractAddress, CONTRACT_ABI, provider);
+  const contract = new Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
 
   let latestBlock;
   try {

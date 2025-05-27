@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   
   
+  
   <style>
     body {
       font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
@@ -294,24 +295,29 @@
     </div>
     <!-- Targeta de transparència -->
     <div id="transparency-info" style="
-      flex:1 1 220px;
-      min-width:220px;
-      max-width:300px;
-      background: #eaf6fe;
-      padding: 1.1em 1.3em;
-      border-radius: 13px;
-      color: #195186;
-      font-size: 0.97em;
-      box-shadow: 0 4px 16px #124c8d0a;
-      text-align: left;
-      margin-top:1.5em;
-      margin-bottom:0.7em;
-    ">
-      <div style="font-weight:600; color:#2379ca; margin-bottom:0.6em;">📊 Activitat recent BIMCoin</div>
-      <div>🔁 <b>Transaccions:</b> <span id="tx-count">...</span></div>
-      <div>💸 <b>BIMCoins moguts:</b> <span id="tx-volume">...</span></div>
-      <div>🕒 <b>Darrera transacció:</b> <span id="last-tx">...</span></div>
-    </div>
+  flex:1 1 220px;
+  min-width:220px;
+  max-width:280px;
+  background: #eaf6fe;
+  padding: 1.1em 1.3em;
+  border-radius: 13px;
+  color: #195186;
+  font-size: 0.97em;
+  box-shadow: 0 4px 16px #124c8d0a;
+  text-align: left;
+  margin-top:1.5em;
+  margin-bottom:0.7em;
+">
+  <div style="font-weight:600; color:#2379ca; margin-bottom:0.6em;">📊 Transparència BIMCoin</div>
+  <div>🔁 <b>Transaccions:</b> <span id="tx-count">...</span></div>
+  <div>💸 <b>BIMCoins moguts:</b> <span id="tx-volume">...</span></div>
+  <div>🧑‍💼 <b>Usuaris únics:</b> <span id="tx-holders">...</span></div>
+  <div>🏦 <b>Saldo contracte:</b> <span id="contract-balance">...</span></div>
+  <div>🕒 <b>Darrera transacció:</b> <span id="last-tx">...</span></div>
+  <div>🕒 <b>Quantitat de models IFC registrats:</b> <span id="num-models">...</span></div>
+
+</div>
+
   </div>
 </section>
 <hr>
@@ -461,7 +467,7 @@ document.getElementById('download-form').addEventListener('submit', async functi
             <b>Autor:</b> ${info.author}
           </div>
         `;
-        updateTransparencyInfo();
+        //updateTransparencyInfo();
 
         // ↓↓↓ DESCÀRREGA DIRECTA ↓↓↓
         try {
@@ -560,7 +566,7 @@ import {
 
 
 // Constants (SUBSTITUEIX amb les teves dades)
-const BIMCOIN_ADDRESS = "0xE464B8A1FAaC982dEe365D9fB3aC1100737Ef4B5";
+
 const PRIVATE_KEY = "a99015595fa8a05de52abbfe36c84a1506d3256f8bfc1965564184e8845cffb5";
 const RPC_URL = "https://sepolia.infura.io/v3/c7c69abed6d74690ad916ccfca06953a";
 
@@ -577,6 +583,10 @@ const BIMCOIN_ABI = [
   { "inputs": [], "name": "symbol", "outputs": [{ "internalType": "string", "name": "", "type": "string" }], "stateMutability": "view", "type": "function" },
   { "inputs": [], "name": "totalSupply", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" }
 ];
+
+
+
+
 
 // Preparem provider i contracte
 const provider = new JsonRpcProvider(RPC_URL);
@@ -640,10 +650,13 @@ async function updateBIMCoinInfo() {
 
 updateBIMCoinInfo();
 
+
+
 </script>
 
 
 </script>
+
 
 </html>
 
