@@ -324,6 +324,84 @@ export function renderModelInfoHTML(infoObj) {
   `;
 }
 
+// --- SHOW MODAL ---
+export function showModalDownloadOptions() {
+  const modal = document.getElementById("download-modal");
+  modal.style.display = "flex";
+  document.getElementById("result").textContent = "Selecciona un fitxer IFC per convertir.";
+
+  // Reseteja input file i resultat
+  document.getElementById("ifc-upload").value = "";
+  document.getElementById("cancel-modal").style.display = "none";
+}
+
+// Tancar modal quan es clica la X o el botó "Tancar"
+document.getElementById("close-modal").onclick = () => {
+  document.getElementById("download-modal").style.display = "none";
+};
+document.getElementById("cancel-modal").onclick = () => {
+  document.getElementById("download-modal").style.display = "none";
+};
+
+// Obrir el modal quan es clica el botó principal
+document.getElementById("convert-modal-btn").onclick = showModalDownloadOptions;
+
+// --- PROCÉS DE CONVERSIÓ ---
+document.getElementById("ifc-upload").addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const formData = new FormData();
+  formData.append("file", file);
+
+  document.getElementById("result").textContent = "Convertint IFC → OBJ...";
+
+  // 1. Envia IFC → backend (/convert), rep OBJ
+  const objResponse = await fetch("http://localhost:8000/convert", {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!objResponse.ok) {
+    document.getElementById("result").textContent = "Error convertint IFC a OBJ!";
+    document.getElementById("cancel-modal").style.display = "block";
+    return;
+  }
+
+  const objBlob = await objResponse.blob();
+
+  // 2. Envia OBJ → backend (/obj2dxf), rep DXF
+  document.getElementById("result").textContent = "Convertint OBJ → DXF...";
+
+  const objToDxfForm = new FormData();
+  objToDxfForm.append("file", new File([objBlob], "model.obj"));
+
+  const dxfResponse = await fetch("http://localhost:8000/obj2dxf", {
+    method: "POST",
+    body: objToDxfForm,
+  });
+
+  if (!dxfResponse.ok) {
+    document.getElementById("result").textContent = "Error convertint OBJ a DXF!";
+    document.getElementById("cancel-modal").style.display = "block";
+    return;
+  }
+
+  // 3. Descarrega DXF automàticament
+  const dxfBlob = await dxfResponse.blob();
+  const url = window.URL.createObjectURL(dxfBlob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "model.dxf";
+  a.click();
+  window.URL.revokeObjectURL(url);
+
+  document.getElementById("result").textContent = "Conversió completada! S'ha descarregat el DXF.";
+  document.getElementById("cancel-modal").style.display = "block";
+});
+
+
+
+
 
 
 

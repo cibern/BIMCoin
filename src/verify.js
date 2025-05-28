@@ -11,7 +11,6 @@ import {
 } from './blockchainConfig.js';
 // L'adreça del contracte de registre de models
 
-
 let lastEvents = [];
 
 document.addEventListener("DOMContentLoaded", async () => {

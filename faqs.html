@@ -123,6 +123,15 @@
       .logo-title { font-size: 1.3rem; }
       nav a { padding: 0.38em 0.81em; }
     }
+    .modal {
+  position: fixed; left: 0; top: 0; width: 100vw; height: 100vh;
+  background: rgba(20,30,40,0.7);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000;
+}
+.modal-content {
+  position: relative;
+}
   </style>
 </head>
 <body>
@@ -176,6 +185,19 @@
     <a href="faqs.html" class="active" id="nav-faq">FAQ's</a>
   </nav>
   <main>
+    <button id="convert-modal-btn">Convertir IFC</button>
+
+<!-- Modal -->
+<div id="download-modal" class="modal" style="display:none;">
+  <div class="modal-content" style="background:#fff; padding:2em; border-radius:12px; max-width:420px; margin:auto;">
+    <span id="close-modal" style="float:right; font-size:1.7em; cursor:pointer;">&times;</span>
+    <h2>Convertir model IFC</h2>
+    <input type="file" id="ifc-upload" accept=".ifc" />
+    <div id="result" style="margin-top:1em;">Selecciona un fitxer IFC per convertir.</div>
+    <button id="cancel-modal" style="margin-top:1em; display:none;">Tancar</button>
+  </div>
+</div>
+
     <h1>Preguntes Freqüents (FAQ)</h1>
 
     <div class="faq-item">
@@ -283,6 +305,7 @@
     <a href="mailto:contacte@autoriabim.com" style="color:#195186;text-decoration:underline;" id="contact-link">Contacta'ns</a>
   </footer>
   <script type="module" src="./src/faqs.js"></script>
+  
 
 </body>
 </html>

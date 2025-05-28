@@ -1,0 +1,1 @@
+import"./modulepreload-polyfill-B5Qt9EMX.js";import{u as o}from"./bimcoin-DS6TUAdR.js";import"./modals-qtyPN8nA.js";import"https://cdn.jsdelivr.net/npm/ethers@6.10.0/+esm";document.addEventListener("DOMContentLoaded",async()=>{o()});
