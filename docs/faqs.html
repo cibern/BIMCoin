@@ -133,10 +133,9 @@
   position: relative;
 }
   </style>
-  <script type="module" crossorigin src="/BIMCoin/assets/faqs-B0091uHQ.js"></script>
+  <script type="module" crossorigin src="/BIMCoin/assets/faqs-CtNlkd62.js"></script>
   <link rel="modulepreload" crossorigin href="/BIMCoin/assets/modulepreload-polyfill-B5Qt9EMX.js">
   <link rel="modulepreload" crossorigin href="/BIMCoin/assets/bimcoin-DS6TUAdR.js">
-  <link rel="modulepreload" crossorigin href="/BIMCoin/assets/modals-qtyPN8nA.js">
 </head>
 <body>
   <header>
@@ -188,19 +187,27 @@
     <a href="porpuse.html" id="nav-objectiu">Propòsit</a>
     <a href="faqs.html" class="active" id="nav-faq">FAQ's</a>
   </nav>
-  <main>
-    <button id="convert-modal-btn">Convertir IFC</button>
 
-<!-- Modal -->
-<div id="download-modal" class="modal" style="display:none;">
-  <div class="modal-content" style="background:#fff; padding:2em; border-radius:12px; max-width:420px; margin:auto;">
-    <span id="close-modal" style="float:right; font-size:1.7em; cursor:pointer;">&times;</span>
-    <h2>Convertir model IFC</h2>
-    <input type="file" id="ifc-upload" accept=".ifc" />
-    <div id="result" style="margin-top:1em;">Selecciona un fitxer IFC per convertir.</div>
-    <button id="cancel-modal" style="margin-top:1em; display:none;">Tancar</button>
+  <main>
+    <!-- BOTÓ PER OBRIR EL MODAL -->
+<button id="convert-download-modal-btn">Convertir IFC</button>
+
+<!-- MODAL PER DESCARREGUES (amb id únic) -->
+<div id="download-modal" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3); justify-content:center; align-items:center; z-index:999;">
+  <div style="background:white; border-radius:10px; padding:2em; min-width:320px; min-height:200px; box-shadow:0 2px 8px #0003; position:relative;">
+    <span id="close-download-modal" style="position:absolute; top:0.7em; right:1em; cursor:pointer; font-size:1.6em;">&times;</span>
+    <h2>Conversió d'IFC</h2>
+    <div id="modal-download-content">
+      <button id="load-ifc-download-btn">Carrega IFC</button>
+      <input type="file" id="ifc-download-upload" style="display:none;" accept=".ifc"/>
+      <div id="levels-download-list"></div>
+      <div id="modal-download-result" style="margin-top:1em; font-size:1em;"></div>
+      <div id="modal-download-actions"></div>
+      <button id="cancel-download-modal" style="margin-top:1em; display:none;">Tancar</button>
+    </div>
   </div>
 </div>
+
 
     <h1>Preguntes Freqüents (FAQ)</h1>
 

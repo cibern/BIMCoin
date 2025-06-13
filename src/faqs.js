@@ -1,5 +1,5 @@
 import { updateBIMCoinInfo } from './bimcoin.js';
-import { showModalDownloadOptions } from './modals.js';
+import { showDownloadModal } from './modals2.js';
 
 // L'adreça del contracte de registre de models
 const contractAddress = "0x03c89df2366f99C8e4E4C9010143d54064c0E893";
