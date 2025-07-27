@@ -18,10 +18,6 @@ import {
   CONTRACT_ABI
 } from './blockchainConfig.js';
 
-
-
-
-
 import lighthouse from '@lighthouse-web3/sdk';
 
 const LIGHTHOUSE_API_KEY = '75fbb6cf.d218f26d35d24b0aa509182068439be5';
@@ -29,9 +25,11 @@ const LIGHTHOUSE_API_KEY = '75fbb6cf.d218f26d35d24b0aa509182068439be5';
 import introJs from 'intro.js';
 import 'intro.js/minified/introjs.min.css';
 
+//*****PASSOS EN EL UTORIAL INTERACTIU */
+
 const tutorialSteps = [
   { intro: '👋 Benvingut al visor IFC ...' },
-  { element: '#tab-btn-ifc', intro: "Des d'aquesta pestanya pots carregar un IFC i consultar el cost de registre." },
+  { element: '#tab-btn-ifc', intro: "Des d'aquesta pestanya pots carregar un IFC i consultar el cost de registre. També pots comparar 2 IFC a partir dels seus hash previament registrats." },
   { element: '#tab-btn-relations', intro: "Des d'aquesta pestanya pots seleccionar elements del model IFC." },
   { element: '#tab-btn-classifications', intro: "Des d'aquesta pestanya pots filtrar elements de l'IFC." },
   { element: '#tab-btn-properties', intro: "Des d'aquesta pestanya pots cosnultar les propietats de cadascun dels elements del model IFC." },
@@ -41,30 +39,40 @@ const tutorialSteps = [
   // etc.
 ];
 
+
 function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
+//*****FUNCIÓ QUE PUJA UN FITXER A LIGHTHOUSE I RETONR EL SEU CID (CONTENT IDENTIFIER) */
 
 async function uploadToLighthouse(file) {
   try {
-    // Ha de ser un array de fitxers! [file]
+    // La funció 'lighthouse.upload' requereix un array de fitxers, per això es posa [file]
+    // LIGHTHOUSE_API_KEY és la clau d'accés personal per autenticar-se amb l'API de Lighthouse
     const response = await lighthouse.upload([file], LIGHTHOUSE_API_KEY);
 
+    // Comprovem si la resposta és vàlida i conté un hash (CID)
     if (response && response.data && response.data.Hash) {
+      // Guardem el CID (Content Identifier) retornat per Lighthouse
       const cid = response.data.Hash;
-      // ALERT BONIC! També pots fer servir SweetAlert2 o similar per estilitzar
-      //alert(`✅ Fitxer pujat correctament!\n\nCID: ${cid}`);
 
-      // Retorna el CID si vols utilitzar-lo després
+      // Opcional: aquí podríem mostrar un missatge de confirmació a l’usuari
+      // Ex: alert(`✅ Fitxer pujat correctament!\n\nCID: ${cid}`);
+
+      // Retornem el CID per poder-lo utilitzar més endavant (ex: guardar-lo en una base de dades o blockchain)
       return cid;
+
     } else {
+      // Si no obtenim un CID, informem l'usuari de l'error
       alert("❌ Error: No s'ha pogut obtenir el CID.");
     }
+
   } catch (err) {
+    // Captura qualsevol error (com problemes de xarxa o resposta invàlida)
+    // Mostra l’error a l’usuari amb un missatge personalitzat
     alert(`❌ Error pujant el fitxer: ${err.message || err}`);
   }
 }
-
 
 let components, world, loadedModel = null;
 let fileSizeMB = 0;
@@ -90,9 +98,6 @@ async function main() {
   const cameraComponent = new OBC.SimpleCamera(components);
   world.camera = cameraComponent;
   
-
-  
-
   viewport.addEventListener("resize", () => {
     rendererComponent.resize();
     cameraComponent.updateAspect();
@@ -104,7 +109,7 @@ async function main() {
 
   await components.init();
   
-console.log("🎮 Controls de càmera:", cameraComponent.controls);
+//console.log("🎮 Controls de càmera:", cameraComponent.controls);
 
   // --- IFC Loader i buffer real ---
   const ifcLoader = components.get(OBC.IfcLoader);
@@ -116,121 +121,114 @@ console.log("🎮 Controls de càmera:", cameraComponent.controls);
 
   // ---------- PANEL "CARREGA IFC" 100% REACTIU ----------
   function createIFCLoaderPanel() {
-    let fileSizeMB = 0;
-    let bimCoinCost = 0;
-    let lastLoadedFile = null; // Opcional, el pots guardar si vols
+  let fileSizeMB = 0;
+  let bimCoinCost = 0;
+  let lastLoadedFile = null;
 
-    const panel = document.createElement("div");
+  const panel = document.createElement("div");
 
-    const renderPanel = () => {
-      panel.innerHTML = `
-        <bim-panel label="Carrega IFC">
-          <bim-panel-section label="Carrega">
-            <input id="ifc-file-input" type="file" accept=".ifc" style="display:none;">
-            <bim-button id="ifc-upload-btn" label="Carrega fitxer IFC"></bim-button>
-            ${fileSizeMB > 0 ? `
-              <div style="margin-top:1rem; padding:0.6rem 0.8rem; border-radius:6px; background:#e7f6fa; color:#195186; font-size:1.13em;">
-                <b>Cost estimat:</b> ${bimCoinCost} BIMCoin 
-                <span style="font-size:0.9em; color:#8a8a8a">(${fileSizeMB.toFixed(2)} MB)</span>
-              </div>
-            ` : ""}
-          </bim-panel-section>
-        </bim-panel>
-      `;
+  const renderPanel = () => {
+    panel.innerHTML = `
+      <bim-panel label="Carrega IFC">
+        <bim-panel-section label="Carrega">
+          <input id="ifc-file-input" type="file" accept=".ifc" style="display:none;">
+          <bim-button id="ifc-upload-btn" label="Carrega fitxer IFC"></bim-button>
+          ${fileSizeMB > 0 ? `
+            <div style="margin-top:1rem; padding:0.6rem 0.8rem; border-radius:6px; background:#e7f6fa; color:#195186; font-size:1.13em;">
+              <b>Cost estimat:</b> ${bimCoinCost} BIMCoin 
+              <span style="font-size:0.9em; color:#8a8a8a">(${fileSizeMB.toFixed(2)} MB)</span>
+            </div>
+          ` : ""}
+        </bim-panel-section>
 
-      const input = panel.querySelector("#ifc-file-input");
-      const btn = panel.querySelector("#ifc-upload-btn");
-      btn.onclick = () => input.click();
+        <bim-panel-section label="Comparar dos IFC">
+          <input type="text" id="hash1" placeholder="Hash del primer model" style="margin-bottom:0.5rem; width:100%; padding:0.4rem;">
+          <input type="text" id="hash2" placeholder="Hash del segon model" style="margin-bottom:0.8rem; width:100%; padding:0.4rem;">
+          <bim-button id="btn-compare-ifc" label="Carrega i compara"></bim-button>
+        </bim-panel-section>
+      </bim-panel>
+    `;
 
-      input.onchange = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        fileSizeMB = file.size / (1024 * 1024);
-        fileSizeMB = Math.max(0.01, parseFloat(fileSizeMB.toFixed(2))); // ✅ Arrodonit amb mínim 0.01
-        bimCoinCost = Math.max(10, Math.ceil(fileSizeMB) * 10); // ✅
-        lastLoadedFile = file;
-        renderPanel();
-        //const cid = await uploadToLighthouse(file);
-    
+    // ------------------------- Càrrega fitxer manual -------------------------
+    const input = panel.querySelector("#ifc-file-input");
+    const btn = panel.querySelector("#ifc-upload-btn");
+    btn.onclick = () => input.click();
 
-        
-        
+    input.onchange = async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      fileSizeMB = file.size / (1024 * 1024);
+      fileSizeMB = Math.max(0.01, parseFloat(fileSizeMB.toFixed(2)));
+      bimCoinCost = Math.max(10, Math.ceil(fileSizeMB) * 10);
+      lastLoadedFile = file;
+      renderPanel();
 
-        // Opcional: Carrega el model al visor
-        const arrayBuffer = await file.arrayBuffer();
-        const ifcUint8 = new Uint8Array(arrayBuffer);
-      window.currentIFCBuffer = arrayBuffer; // IMPORTANT! Així el panell BIMCoin el veu
+      const arrayBuffer = await file.arrayBuffer();
+      window.currentIFCBuffer = arrayBuffer;
       window.currentFileSizeMB = fileSizeMB;
       window.currentBIMCoinCost = bimCoinCost;
+
       loadedModel = await ifcLoader.load(new Uint8Array(arrayBuffer));
-      if (!loadedModel) {
-        alert("No s'ha pogut carregar el model IFC!");
-        return;
-      }
-      // Força indexació de relacions (important!)
       const indexer = components.get(OBC.IfcRelationsIndexer);
       await indexer.process(loadedModel);
-
-      
-
-      // Classificació
-      const classifier = components.get(OBC.Classifier);
-      
-
-      const thickItems = classifier.find({
-        entities: ["IFCWALLSTANDARDCASE", "IFCWALL"],
-      });
-
-      const thinItems = classifier.find({
-        entities: ["IFCDOOR", "IFCWINDOW", "IFCPLATE", "IFCMEMBER"],
-      });
-
-      
-
-
-
-
-      classifier.byModel(loadedModel.uuid, loadedModel);
-      await classifier.byEntity(loadedModel);
-      //console.log("ENTITATS AL CLASSIFIER:", classifier._entities);
-      // --- Llista tots els tipus d'entitat presents al model carregat
-      const allEntityTypes = Object.values(loadedModel._properties)
-      .map(p => p.constructor?.name)
-      .filter(Boolean);
-      console.log("TOTS ELS TIPUS D'ENTITAT AL MODEL:", [...new Set(allEntityTypes)]);
-
-      // Troba entitats de tipus "building storey" (en qualsevol format)
-      const storeyTypes = [...new Set(allEntityTypes)].filter(
-        t => t.toLowerCase().includes("buildingstorey")
-      );
-
-      let storeys = {};
-for (const type of storeyTypes) {
-  const found = classifier.find({ entities: [type] });
-  storeys = { ...storeys, ...found };
-}
-console.log("STOREYS TROBATS:", storeys);
-
-      
-
-      // Busca plantes
-      //const storeys = classifier.find({ entities: ["IfcBuildingStorey"] });
-      //console.log("DESPRÉS de byEntity - STOREYS:", storeys);
-      //console.log("LOADEDMODEL:", loadedModel);
-
-      // Prova de llistar els fragments trobats:
-      if (Object.keys(storeys).length > 0) {
-  alert(`S'han trobat ${Object.keys(storeys).length} plantes/storeys!`);
-} else {
-  //alert("NO s'han trobat plantes/storeys al model!");
-}
-      //await addPlansPanel(loadedModel);   // <--- CRIDA AQUÍ!
-      };
     };
 
-    renderPanel();
-    return panel;
+    // ------------------------- Comparar per hash -------------------------
+    panel.querySelector("#btn-compare-ifc").onclick = async () => {
+      const h1 = panel.querySelector("#hash1").value.trim().toLowerCase();
+      const h2 = panel.querySelector("#hash2").value.trim().toLowerCase();
+      if (!h1 || !h2) return alert("Introdueix els dos hash!");
+
+      const provider = new BrowserProvider(window.ethereum);
+      const contract = new Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
+      const ifcLoader = components.get(OBC.IfcLoader);
+      const indexer = components.get(OBC.IfcRelationsIndexer);
+
+      const loadModelByHash = async (hash, color) => {
+  const info = await contract.getModelInfo(hash);
+  const match = info.description.match(/CID:\s*([a-z0-9]+)/i);
+  if (!match) throw new Error("CID no trobat a la descripció");
+  const cid = match[1];
+
+  const res = await fetch(`https://gateway.lighthouse.storage/ipfs/${cid}`);
+  const buffer = await res.arrayBuffer();
+  const model = await ifcLoader.load(new Uint8Array(buffer));
+
+  // Aplica color i transparència a tots els fragments
+model.traverse(obj => {
+  if (obj.isMesh && obj.material) {
+    const newMat = new THREE.MeshStandardMaterial({
+      color: new THREE.Color(color),
+      transparent: true,
+      opacity: 0.6
+    });
+    obj.material = newMat;
   }
+});
+
+
+  await indexer.process(model);
+};
+
+
+      try {
+        showModal("🔄 Carregant models...", null, 15);
+        await loadModelByHash(h1, "#ff0000");
+        showModal("🔄 Segon model...", null, 55);
+        await loadModelByHash(h2, "#00aa00");
+        showModal("✅ Models carregats!");
+        setTimeout(hideModal, 2000);
+      } catch (err) {
+        hideModal();
+        alert("❌ Error carregant models: " + (err.message || err));
+      }
+    };
+  };
+
+  renderPanel();
+  return panel;
+}
+
 
   // ---------- Resta de panells ----------
   // ... (Relacions, Classificacions, Propietats, BIMCoin, Comprova Hash...)
@@ -330,8 +328,6 @@ console.log("STOREYS TROBATS:", storeys);
     description: "",
     datetime: new Date().toISOString().slice(0, 16), // yyyy-mm-ddThh:mm
   };
-
-  
 
 let lastHash = null;
 let showHashBox = false;
@@ -767,10 +763,6 @@ document.addEventListener("DOMContentLoaded", () => {
     renderLang(e.target.value);
   });
 });
-
-
-
-
 
 async function updateBIMCoinInfo() {
   if (!window.ethereum) {

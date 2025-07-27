@@ -112,14 +112,14 @@ function showFilteredList() {
     );
   }
 
-  filtered = filtered.slice(0, 10);
+  filtered = filtered.slice(0, 50);
 
   if (filtered.length === 0) {
     resultDiv.innerHTML = "<i>No hi ha registres coincidents.</i>";
     return;
   }
 
-  resultDiv.innerHTML = `<h3>A continuació es mostren els 10 últims models IFC registrats a la BlockChain:</h3>`;
+  resultDiv.innerHTML = `<h3>A continuació es mostren els 50 últims models IFC registrats a la BlockChain:</h3>`;
   filtered.forEach((model, i) => {
     // Extraure CID del text "CID: xyz" a la descripció
     let cid = null, imageCID = null, fileSizeMB = null;
