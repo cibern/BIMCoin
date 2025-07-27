@@ -26,6 +26,21 @@ import lighthouse from '@lighthouse-web3/sdk';
 
 const LIGHTHOUSE_API_KEY = '75fbb6cf.d218f26d35d24b0aa509182068439be5';
 
+import introJs from 'intro.js';
+import 'intro.js/minified/introjs.min.css';
+
+const tutorialSteps = [
+  { intro: '👋 Benvingut al visor IFC ...' },
+  { element: '#tab-btn-ifc', intro: "Des d'aquesta pestanya pots carregar un IFC i consultar el cost de registre." },
+  { element: '#tab-btn-relations', intro: "Des d'aquesta pestanya pots seleccionar elements del model IFC." },
+  { element: '#tab-btn-classifications', intro: "Des d'aquesta pestanya pots filtrar elements de l'IFC." },
+  { element: '#tab-btn-properties', intro: "Des d'aquesta pestanya pots cosnultar les propietats de cadascun dels elements del model IFC." },
+  { element: '#tab-btn-bimcoin', intro: "Des d'aquesta pestanya pots registrar el model col·Locant-hi metadates com un nom, versió o descripció." },
+  { element:'#tab-btn-checkhash', intro: "Des d'aquesta pestanya pots consultar les metadates del model a partir del seu hash." },
+  { element:'#visor', intro: "Visualitzador dels arxius IFC. Un cop es registra l'IFC es genera un pdf que incorpora la imatge final del navegador." },
+  // etc.
+];
+
 function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -665,6 +680,8 @@ panelBIMCoin = BUI.Component.create(() => {
       const btn = document.createElement("button");
       btn.textContent = tab.label;
       btn.className = activeTab === tab.key ? "active" : "";
+      // AFEGEIX L'ID AMB UN PREFIX PER NO XOCAR
+      btn.id = `tab-btn-${tab.key}`; // Ex: tab-btn-ifc, tab-btn-relations, etc.
       btn.onclick = () => {
         activeTab = tab.key;
         renderPanelTabs();
@@ -729,6 +746,27 @@ function base64ToBlob(dataURL, mimeType) {
   }
   return new Blob([ab], { type: mimeType });
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+  setTimeout(() => {
+    const tutBtn = document.getElementById('tutorial-btn-float');
+    if (tutBtn) {
+      tutBtn.onclick = (e) => {
+        e.preventDefault();
+        introJs().setOptions({ steps: tutorialSteps, showProgress: true }).start();
+      };
+    } else {
+      console.warn('No s\'ha trobat el botó tutorial!');
+    }
+  }, 0);
+  const initLang = getDefaultLang();
+  $("lang-selector").value = initLang;
+  renderLang(initLang);
+
+  $("lang-selector").addEventListener("change", e => {
+    renderLang(e.target.value);
+  });
+});
 
 
 

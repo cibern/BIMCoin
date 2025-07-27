@@ -1,5 +1,5 @@
 import { translations } from './translations.js';
-import { BrowserProvider, Contract, formatUnits } from "ethers";
+import { BrowserProvider, Contract, formatUnits, parseUnits } from "ethers";
 import {
   CONTRACT_ADDRESS,
   BIMCOIN_ADDRESS,
@@ -8,7 +8,145 @@ import {
   REGISTRY_ABI
 } from './blockchainConfig.js';
 
-// Helper curt per seleccionar per id
+import introJs from 'intro.js';
+import 'intro.js/minified/introjs.min.css';
+
+const tutorialSteps = [
+  { intro: '👋 Benvingut a BIMCoin! ...' },
+  { element: '#nav-visor', intro: "Accedeix al visor per veure i registrar els teus models BIM." },
+  { element: '#payment-mockup-section', intro: "Compra BIMCoins per poder fer el registre." },
+  { element: '#walletBalance', intro: "💰 Aquí veuràs el saldo de BIMCoins." },
+  { element: '#hash-input', intro: "Des d'aquí et podràs descarregar qualsevol model IFC a partir del seu hash." },
+  { element: '#transparency-info', intro: "Des d'aquest apartat podràs comprovar la trasnperència de l'entorn." },
+   { element: '#lang-selector', intro: "Des d'aquest menú desplegable podràs escollir." },
+  // etc.
+];
+
+// ------------ MOCKUP PASSAREL·LA EURO → BIMCOIN + WALLET ------------
+// ------------ MOCKUP PASSAREL·LA EURO → BIMCOIN + WALLET ------------
+
+// Algoritme de Luhn per validar targetes de crèdit
+function isValidCardNumber(cardNumber) {
+  const num = cardNumber.replace(/\D/g, "");
+  let sum = 0;
+  let shouldDouble = false;
+  for (let i = num.length - 1; i >= 0; i--) {
+    let digit = parseInt(num[i]);
+    if (shouldDouble) {
+      digit *= 2;
+      if (digit > 9) digit -= 9;
+    }
+    sum += digit;
+    shouldDouble = !shouldDouble;
+  }
+  return sum % 10 === 0;
+}
+
+function showPaymentError(msg) {
+  const resultDiv = document.getElementById("bimcoin-transfer-result");
+  resultDiv.textContent = msg;
+  resultDiv.style.color = "red";
+  resultDiv.style.display = "block";
+  setTimeout(() => { resultDiv.style.display = "none"; }, 3000);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("mockup-payment-form");
+  if (form) {
+    form.onsubmit = async function(e) {
+      e.preventDefault();
+
+      // VALIDACIÓ DE CAMPS
+      const euros = parseFloat(document.getElementById("payment-amount").value) || 0;
+      if (euros <= 0) return showPaymentError("Import no vàlid");
+
+      const cardInput = form.querySelector('input[placeholder="1234 5678 9012 3456"]');
+      const card = cardInput.value.replace(/\s+/g, '');
+      if (!/^\d{16}$/.test(card) || !isValidCardNumber(card)) {
+        return showPaymentError("Número de targeta no vàlid");
+      }
+
+      // Caducitat
+      const expiryInput = document.getElementById("mesAny");
+      if (!expiryInput.value || !/^\d{4}-\d{2}$/.test(expiryInput.value)) {
+        return showPaymentError("Data de caducitat no vàlida");
+      }
+      const [year, month] = expiryInput.value.split("-");
+      const expiryDate = new Date(Number(year), Number(month) - 1, 1);
+      const now = new Date();
+      if (
+        expiryDate.getFullYear() < now.getFullYear() ||
+        (expiryDate.getFullYear() === now.getFullYear() && expiryDate.getMonth() < now.getMonth())
+      ) {
+        return showPaymentError("La targeta està caducada");
+      }
+
+      // CVC
+      const cvcInput = form.querySelector('input[placeholder="123"]');
+      const cvc = cvcInput.value.trim();
+      if (!/^\d{3,4}$/.test(cvc)) {
+        return showPaymentError("Codi CVC no vàlid");
+      }
+
+      document.getElementById("mockup-payment-result").style.display = "block";
+      document.getElementById("mockup-payment-result").textContent = "💳 Processant pagament...";
+
+      // Ratio de conversió: 1 € = 10 BIMCoin
+      const ratio = 10;
+      const bimcAmount = euros * ratio;
+
+      setTimeout(async () => {
+        document.getElementById("mockup-payment-result").textContent = "Pagament acceptat! Transferint BIMCoins...";
+
+        let msg = "";
+        try {
+          if (!window.ethereum) throw new Error("Necessites MetaMask!");
+          const provider = new BrowserProvider(window.ethereum);
+          await provider.send("eth_requestAccounts", []);
+          const signer = await provider.getSigner();
+          const userAddress = await signer.getAddress();
+
+          // Demana al backend que faci el transfer
+          const res = await fetch("http://localhost:3030/send-bimcoin", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              walletAddress: userAddress,
+              amount: bimcAmount // pots enviar en BIMC, el backend el convertirà a decimals
+            })
+          });
+          const data = await res.json();
+          if (data.status === "ok") {
+            msg = `✅ S'han transferit ${bimcAmount} BIMCoins a la teva wallet (${userAddress.slice(0,7)}...)! Tx: ${data.txHash}`;
+            let count = 0;
+  const interval = setInterval(() => {
+    updateBIMCoinInfo();
+    if (++count > 6) clearInterval(interval); // S'atura als 30s
+  }, 5000);
+          } else {
+            msg = "❌ Error transferint BIMCoins: " + (data.error || "");
+          }
+        } catch (err) {
+          msg = "❌ Error transferint BIMCoins: " + (err.message || err);
+        }
+        document.getElementById("mockup-payment-result").style.display = "none";
+        const resultDiv = document.getElementById("bimcoin-transfer-result");
+        resultDiv.textContent = msg;
+        resultDiv.style.color = msg.startsWith("✅") ? "#124c8d" : "red";
+        resultDiv.style.display = "block";
+        setTimeout(() => resultDiv.style.display = "none", 3500);
+        document.getElementById("mockup-payment-form").reset();
+      }, 1800);
+    }
+  }
+  
+});
+
+
+
+
+// ---------------- RESTA DEL TEU JS SENSE MODIFICAR ------------------
+
 const $ = id => document.getElementById(id);
 
 function renderLang(lang) {
@@ -38,7 +176,6 @@ function renderLang(lang) {
   document.documentElement.lang = lang;
 }
 
-// Inicialitza amb l’idioma per defecte o navegador
 function getDefaultLang() {
   const nav = navigator.language || "ca";
   if (translations[nav.slice(0,2)]) return nav.slice(0,2);
@@ -46,6 +183,17 @@ function getDefaultLang() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  setTimeout(() => {
+    const tutBtn = document.getElementById('tutorial-btn-float');
+    if (tutBtn) {
+      tutBtn.onclick = (e) => {
+        e.preventDefault();
+        introJs().setOptions({ steps: tutorialSteps, showProgress: true }).start();
+      };
+    } else {
+      console.warn('No s\'ha trobat el botó tutorial!');
+    }
+  }, 0);
   const initLang = getDefaultLang();
   $("lang-selector").value = initLang;
   renderLang(initLang);
@@ -55,7 +203,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-//FUNCIÓ QUE ACTUALITZA LA QUANITAT DE BIMCOINS QUE TÉ L'USUARI
 async function updateBIMCoinInfo() {
   if (!window.ethereum) {
     console.warn("❗️ No hi ha MetaMask o provider disponible.");
@@ -63,89 +210,46 @@ async function updateBIMCoinInfo() {
   }
 
   try {
-    //console.log("🔌 Connectant amb provider...");
     const provider = new BrowserProvider(window.ethereum);
-
-    //console.log("🔐 Obtenint signer...");
     const signer = await provider.getSigner();
-
     const userAddress = await signer.getAddress();
-    //console.log("👤 Adreça de l'usuari:", userAddress);
-
     const contract = new Contract(BIMCOIN_ADDRESS, BIMCOIN_ABI, provider);
-    //console.log("📄 Contracte inicialitzat correctament");
-
     const [walletRaw, totalRaw, decimals] = await Promise.all([
       contract.balanceOf(userAddress),
       contract.totalSupply(),
       contract.decimals()
     ]);
-
-    //console.log("💰 Raw wallet balance:", walletRaw.toString());
-    //console.log("🏦 Raw total supply:", totalRaw.toString());
-    //console.log("🔢 Decimals:", decimals);
-
     const walletBalance = formatUnits(walletRaw.toString(), decimals);
     const totalSupply = formatUnits(totalRaw.toString(), decimals);
-
-    //console.log("✅ Formatejat wallet balance:", walletBalance);
-    //console.log("✅ Formatejat total supply:", totalSupply);
-
-    // Actualitza el DOM
     const walletElem = document.getElementById("walletBalance");
     const totalElem = document.getElementById("totalSupply");
-
-    if (walletElem) {
-      walletElem.textContent = `${parseFloat(walletBalance).toFixed(0)} BIMC`;
-    } else {
-      console.warn("⚠️ No s'ha trobat #walletBalance al DOM");
-    }
-
-    if (totalElem) {
-      totalElem.textContent = `${parseFloat(totalSupply).toFixed(2)} BIMC`;
-    } else {
-      //console.warn("⚠️ No s'ha trobat #totalSupply al DOM");
-    }
-
+    if (walletElem) walletElem.textContent = `${parseFloat(walletBalance).toFixed(0)} BIMC`;
+    if (totalElem) totalElem.textContent = `${parseFloat(totalSupply).toFixed(2)} BIMC`;
   } catch (err) {
     console.error("❌ Error carregant info BIMCoin:", err);
   }
 }
-
 updateBIMCoinInfo();
 
-//FUNCIÓ QUE ACTUALITZAR LES DADES DE TRANSPARÈNCIA DE BIMCOIN
 async function updateTransparencyInfo() {
   try {
     if (!window.ethereum) throw new Error("MetaMask no detectat");
-
     const provider = new BrowserProvider(window.ethereum);
     const contract = new Contract(BIMCOIN_ADDRESS, BIMCOIN_ABI, provider);
     const modelContract = new Contract(MODELS_ADDRESS, MODELS_ABI, provider);
     const modelEvents = await modelContract.queryFilter(modelContract.filters.ModelRegistered());
     const numModels = modelEvents.length;
     const decimals = await contract.decimals();
-
-    // Consulta events Transfer
     const filter = contract.filters.Transfer();
     const logs = await contract.queryFilter(filter);
-
-    // Número total de transaccions
     const txCount = logs.length;
-
-    // Total BIMCoins transferits (formatUnits retorna string decimal)
     let totalVolume = logs.reduce((sum, log) => sum + log.args.value, 0n);
     let totalVolumeHuman = formatUnits(totalVolume, decimals);
-    // → Mostra només la part sencera (sense decimals)
     let totalVolumeRounded = Math.floor(Number(totalVolumeHuman));
-
-    // Darrera transacció
     let lastTx = logs.length ? logs[logs.length - 1] : null;
     let lastTxInfo = lastTx
       ? `Hash: <a href="https://sepolia.etherscan.io/tx/${lastTx.transactionHash}" target="_blank" style="color:#2379ca;">${lastTx.transactionHash.slice(0, 10)}...</a>`
       : "—";
-
-    // 4. Nº de holders (usuaris únics que han rebut tokens alguna vegada)
     const uniqueAddresses = new Set();
     logs.forEach(log => {
       uniqueAddresses.add(log.args.to.toLowerCase());
@@ -153,21 +257,14 @@ async function updateTransparencyInfo() {
     });
     uniqueAddresses.delete("0x0000000000000000000000000000000000000000");
     const holders = uniqueAddresses.size;
-
-     // 5. Saldo actual del contracte (wallet)
     const contractBalanceRaw = await contract.balanceOf(CONTRACT_ADDRESS);
-const contractBalance = Math.floor(Number(formatUnits(contractBalanceRaw, decimals)));
-
-
-    // Actualitza la web
+    const contractBalance = Math.floor(Number(formatUnits(contractBalanceRaw, decimals)));
     document.getElementById("tx-count").textContent = txCount;
     document.getElementById("tx-volume").textContent = totalVolumeRounded + " BIMC";
     document.getElementById("last-tx").innerHTML = lastTxInfo;
     document.getElementById("tx-holders").innerHTML = holders;
     document.getElementById("contract-balance").textContent = contractBalance + " BIMC";
     document.getElementById("num-models").textContent = numModels;
-
-    
   } catch (err) {
     document.getElementById("tx-count").textContent = "-";
     document.getElementById("tx-volume").textContent = "-";
@@ -177,6 +274,5 @@ const contractBalance = Math.floor(Number(formatUnits(contractBalanceRaw, decima
 const MODELS_ADDRESS = REGISTRY_ADDRESS;
 const MODELS_ABI = REGISTRY_ABI;
 updateTransparencyInfo();
-
 
 

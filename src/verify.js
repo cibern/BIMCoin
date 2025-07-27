@@ -1,5 +1,8 @@
 import { updateBIMCoinInfo } from './bimcoin.js';
 import { showModal, hideModal } from './modals.js';
+import { generarCertificatPDF } from './pdf.js';
+import jsPDF from "jspdf";
+
 
 import {
   CONTRACT_ADDRESS,
@@ -133,43 +136,57 @@ function showFilteredList() {
       cost = cost * 10; // cada MB → 10 BIMCoin
     }
 
-    resultDiv.innerHTML += `
-      <div class="hash-item">
-        <b>#${i + 1} — ${model.filename}</b><br>
-        <span class="hash">${model.hash}</span>
-        <span>Versió: <b>${model.version}</b></span><br>
-        <span>Descripció: ${(model.description || '-')
-          .replace(/CID:\s*[a-z0-9]+/i, '')
-          .replace(/IMG:\s*[a-z0-9]+/i, '')
-          .replace(/MB:\s*[\d.]+/i, '')
-          .replace(/\n+$/, '')
-          .trim()}</span><br>
-        <span style="color:#777">Data: ${formatDate(model.datetime)}</span><br>
-        <span style="color:#aaa">Author: ${model.author}</span>
-        ${imageCID ? `
-          <div style="display: flex; align-items: center; gap: 1.5em; margin-top: 1.2em; flex-wrap: wrap;">
-            <img src="https://gateway.lighthouse.storage/ipfs/${imageCID}" 
-                 alt="Captura del model" 
-                 style="max-width: 180px; border-radius: 0.6em; box-shadow: 0 2px 8px #0002; max-height: 160px;">
-            <div style="display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 0.6em;">
-              <button
+resultDiv.innerHTML += `
+  <div class="hash-item">
+    <b>#${i + 1} — ${model.filename}</b><br>
+    <span class="hash">${model.hash}</span>
+    <span>Versió: <b>${model.version}</b></span><br>
+    <span>Descripció: ${(model.description || '-')
+      .replace(/CID:\s*[a-z0-9]+/i, '')
+      .replace(/IMG:\s*[a-z0-9]+/i, '')
+      .replace(/MB:\s*[\d.]+/i, '')
+      .replace(/\n+$/, '')
+      .trim()}</span><br>
+    <span style="color:#777">Data: ${formatDate(model.datetime)}</span><br>
+    <span style="color:#aaa">Author: ${model.author}</span>
+    ${imageCID ? `
+      <div style="display: flex; align-items: flex-start; gap: 2em; margin-top: 1.2em;">
+        <img src="https://gateway.lighthouse.storage/ipfs/${imageCID}" 
+          alt="Captura del model" 
+          style="max-width: 180px; border-radius: 0.6em; box-shadow: 0 2px 8px #0002; max-height: 160px;">
+
+        <div style="display: flex; flex-direction: column; gap: 1.1em;">
+          <div style="display: flex; align-items: center; gap: 0.7em;">
+            <button
               class="download-btn"
               data-cid="${cid}"
               data-filename="${model.filename || 'model'}.ifc"
               data-cost="${cost}"
-              >
+            >
               ⬇️ Descarregar IFC
-              </button>
-              ${cost ? `
-                <span style="font-size:1.1em; color:#195186; background:#e7f6fa; border-radius:7px; padding:0.4em 0.8em; display:inline-block;">
-                  💰 ${cost} BIMCoin
-                </span>
-              ` : ""}
-            </div>
+            </button>
+            ${cost ? `
+              <span style="font-size:1.1em; color:#195186; background:#e7f6fa; border-radius:7px; padding:0.4em 0.8em; display:inline-block;">
+                💰 ${cost} BIMCoin
+              </span>
+            ` : ""}
           </div>
-        ` : ""}
+          <div>
+            <button
+              class="download-pdf-btn"
+              data-index="${i}"
+              style="margin-top:0.8em;"
+            >
+              📄 Descarregar PDF
+            </button>
+            <span style="margin-left:1em;color:#195186;">Sense cap cost</span>
+          </div>
+        </div>
       </div>
-    `;
+    ` : ""}
+  </div>
+`;
+
   });
 
   // Listeners per la descàrrega
@@ -254,6 +271,44 @@ document.querySelectorAll('.download-btn').forEach(btn => {
       hideModal();
     }
   };
+});
+// Listener per la descàrrega PDF del certificat
+document.querySelectorAll('.download-pdf-btn').forEach(btn => {
+  btn.onclick = async function () {
+    const idx = parseInt(btn.getAttribute('data-index'), 10);
+    const searchInput = document.getElementById("search");
+    const searchValue = (searchInput.value || "").toLowerCase().trim();
+    let filtered = lastEvents;
+    if (searchValue) {
+      filtered = filtered.filter(model =>
+        (model.filename && model.filename.toLowerCase().includes(searchValue)) ||
+        (model.version && model.version.toLowerCase().includes(searchValue)) ||
+        (model.description && model.description.toLowerCase().includes(searchValue)) ||
+        (model.datetime && String(model.datetime).toLowerCase().includes(searchValue)) ||
+        (model.author && String(model.author).toLowerCase().includes(searchValue)) ||
+        (model.hash && model.hash.toLowerCase().includes(searchValue))
+      );
+    }
+    filtered = filtered.slice(0, 10);
+
+    const model = filtered[idx];
+
+    // Extreu el CID de la imatge (IMG: ...)
+    let imageCid = null;
+    const imgMatch = model.description && model.description.match(/IMG:\s*([a-z0-9]+)/i);
+    if (imgMatch) imageCid = imgMatch[1];
+
+    if (model) {
+      // Passa tota la info a la funció PDF!
+      generarCertificatPDF({
+        nom: model.filename || "-",
+        hash: model.hash || "-",
+        data: model.datetime || "-",
+        descripcio: model.description || "-",
+        imageCid: imageCid // Important!
+      });
+    }
+  }
 });
 
 

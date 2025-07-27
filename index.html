@@ -7,6 +7,7 @@
   
   
   
+  
   <style>
     body {
       font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
@@ -65,6 +66,31 @@
       box-shadow: 0 4px 22px rgba(27,77,145,0.11);
       padding: 2.6rem 2rem 2.5rem 2rem;
     }
+    .main-btn, .cta a, button {
+      display: inline-block;
+      font-size: 1.13em;
+      color: #fff;
+      background: linear-gradient(90deg, #195186 0%, #3496e2 100%);
+      padding: 0.85em 2.1em;
+      border-radius: 7px;
+      text-decoration: none;
+      box-shadow: 0 2px 10px #19518618;
+      font-weight: 600;
+      border: none;
+      margin-top: 0.6em;
+      transition: 
+        background 0.19s,
+        box-shadow 0.18s,
+        transform 0.16s;
+      }
+    .main-btn:hover, .cta a:hover, button:hover {
+      background: linear-gradient(90deg, #2379ca 0%, #124c8d 100%);
+      color: #fff;
+      box-shadow: 0 8px 26px #124c8d2a;
+      transform: translateY(-2px) scale(1.04);
+      text-decoration: none;
+    }
+
     h2 {
       color: #195186;
       margin-top: 1.5em;
@@ -207,6 +233,29 @@
   .timeline { flex-direction: column; align-items: stretch; }
   .timeline-connector { display: none; }
 }
+#tutorial-btn-float {
+  position: fixed;
+  top: 70px;
+  right: 28px;
+  z-index: 999;
+  background: #195186;
+  color: #fff;
+  padding: 0.64em 1.5em;
+  border-radius: 11px;
+  font-weight: 600;
+  font-size: 1.06em;
+  box-shadow: 0 2px 10px #19518618;
+  text-decoration: none;
+  transition: background 0.14s, box-shadow 0.14s;
+}
+#tutorial-btn-float:hover {
+  background: #2379ca;
+  box-shadow: 0 6px 22px #19518627;
+}
+@media (max-width: 600px) {
+  #tutorial-btn-float { right: 8px; top: 10px; font-size: 0.99em;}
+}
+
 
   </style>
 </head>
@@ -262,6 +311,9 @@
   text-align: left;
   max-width: 220px;
 ">
+
+<!-- Targeta info -->
+
     💰 <strong>Saldo:</strong> <span id="walletBalance">-</span><br>
   <!--🧱 <strong>Total:</strong> <span id="totalSupply">-</span> -->
 </div>
@@ -269,11 +321,12 @@
 
   <nav>
     <a href="index.html" class="active" id="nav-home">Home</a>
-    <a href="visor.html" id="nav-visor">Visor</a>
+    <a href="visor.html" id="nav-visor" data-intro="Accedeix al visor per veure i registrar els teus models BIM.">Visor</a>
     <a href="verify.html" id="nav-verify">Comprovar hash</a>
     <a href="porpuse.html" id="nav-objectiu">Propòsit</a>
     <a href="faqs.html" id="nav-faq">FAQ's</a>
   </nav>
+  <a id="tutorial-btn-float" href="#">Tutorial interactiu</a>
 
   <script type="module" src="/src/translations.js"></script>
   
@@ -289,7 +342,7 @@
       <form id="download-form" style="display: flex; flex-direction: column; gap: 1em; max-width: 480px;">
         <label for="hash-input">Hash del model:</label>
         <input type="text" id="hash-input" name="hash" placeholder="Enganxa el hash aquí..." required style="padding: 0.6em; border-radius: 6px; border: 1px solid #b7cee3;">
-        <button type="submit" style="background: #2379ca; color: #fff; padding: 0.8em; border: none; border-radius: 7px; font-size: 1em; cursor: pointer;">Descarrega model</button>
+        <button type="submit" style="background:#195186;color:#fff;font-weight:600;padding:0.8em 2em;border:none;border-radius:7px;cursor:pointer;font-size:1.1em;margin-top:0.7em;">Descarrega model</button>
       </form>
       <div id="download-result" style="margin-top:1.4em;"></div>
     </div>
@@ -508,6 +561,36 @@ if (!filename.toLowerCase().endsWith('.ifc')) {
 });
 </script>
 
+<!-- PASSAREL·LA MOCKUP EURO → BIMCOIN -->
+ <h2>Compra BIMCoin</h2>
+ <label for="hash-input">La conversió entre BIMCoin i € és <b>10 BIMC = 1,00 €.</b> Per tant, si es compra per valor de 10,00 € s'obtindrà 100 BIMC. El cost per registrar un model IFC es calcula segons la quantitat de MB de l'arxiu. Per exemple, un arxiu de d'entre 2 MB i 2,99 MB té un cost de 30 BIMC. Un cop carregat l'arxiu al <a href="visor.html">visor</a>, s'informa d'aquest cost amb exactitud.</label>
+<section id="payment-mockup-section" style="max-width:420px;margin:2em auto 2em auto;padding:1.5em 2em 1.5em 2em;background:#eaf6fe;border-radius:13px;box-shadow:0 3px 16px #124c8d18;">
+  <form id="mockup-payment-form" style="display:flex;flex-direction:column;gap:1.1em;">
+    <label>
+      Import (€):<br>
+      <input type="number" min="1" step="1" value="10" id="payment-amount" required style="width:120px;padding:0.5em;border-radius:6px;border:1px solid #b7cee3;">
+    </label>
+    <label>
+      Número de targeta:<br>
+      <input type="text" pattern="[0-9 ]*" maxlength="19" placeholder="1234 5678 9012 3456" required style="width:180px;padding:0.5em;border-radius:6px;border:1px solid #b7cee3;">
+    </label>
+    <label>
+      Caducitat:<br>
+      <input type="month" id="mesAny" name="mesAny">
+    </label>
+    <label>
+      CVC:<br>
+      <input type="text" pattern="[0-9]*" maxlength="4" placeholder="123" required style="width:70px;padding:0.5em;border-radius:6px;border:1px solid #b7cee3;">
+    </label>
+    <button type="submit" style="background:#195186;color:#fff;font-weight:600;padding:0.8em 2em;border:none;border-radius:7px;cursor:pointer;font-size:1.1em;margin-top:0.7em;">Comprar</button>
+  </form>
+  <div id="mockup-payment-result" style="display:none;margin-top:1em;font-size:1.13em;color:green;font-weight:500;">✅ Pagament realitzat correctament!</div>
+  <div id="bimcoin-transfer-result" style="color:#124c8d;font-weight:500;display:none;margin-top:0.7em;"></div>
+</section>
+<hr>
+
+
+
 
 
 
@@ -519,7 +602,7 @@ if (!filename.toLowerCase().endsWith('.ifc')) {
     </ol>
     <div class="cta">
       <div style="font-size:1.15em; margin-bottom: 0.7em;" id="cta-desc">Prova-ho ara mateix:</div>
-      <a id="cta-link" href="visor.html">Obre el visor i registra el teu IFC</a>
+      <a id="cta-link" href="visor.html" style="background:#195186;color:#fff;font-weight:600;padding:0.8em 2em;border:none;border-radius:7px;cursor:pointer;font-size:1.1em;margin-top:0.7em;">Obre el visor i registra el teu IFC</a>
       <div style="margin-top:1.2em; color:#2379ca; font-size:0.95em;" id="cta-help">
         El visor et permet veure el model i registrar-lo en pocs segons.<br>
         Només necessites MetaMask i el teu arxiu IFC.
