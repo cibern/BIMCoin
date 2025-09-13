@@ -258,9 +258,9 @@
 
 
   </style>
-  <script type="module" crossorigin src="/BIMCoin/assets/main-BfWvJUF-.js"></script>
+  <script type="module" crossorigin src="/BIMCoin/assets/main-DjzLd1du.js"></script>
   <link rel="modulepreload" crossorigin href="/BIMCoin/assets/modulepreload-polyfill-B5Qt9EMX.js">
-  <link rel="modulepreload" crossorigin href="/BIMCoin/assets/blockchainConfig-nCfmhYd7.js">
+  <link rel="modulepreload" crossorigin href="/BIMCoin/assets/blockchainConfig-Mf8FSOm2.js">
   <link rel="modulepreload" crossorigin href="/BIMCoin/assets/introjs.min-yXOdXbUC.js">
   <link rel="modulepreload" crossorigin href="/BIMCoin/assets/index-D7ruDgPv.js">
   <link rel="stylesheet" crossorigin href="/BIMCoin/assets/introjs-DEtfudSJ.css">
@@ -366,13 +366,13 @@
   margin-top:1.5em;
   margin-bottom:0.7em;
 ">
-  <div style="font-weight:600; color:#2379ca; margin-bottom:0.6em;">📊 Transparència BIMCoin</div>
-  <div>🔁 <b>Transaccions:</b> <span id="tx-count">...</span></div>
-  <div>💸 <b>BIMCoins moguts:</b> <span id="tx-volume">...</span></div>
-  <div>🧑‍💼 <b>Usuaris únics:</b> <span id="tx-holders">...</span></div>
-  <div>🏦 <b>Saldo contracte:</b> <span id="contract-balance">...</span></div>
-  <div>🕒 <b>Darrera transacció:</b> <span id="last-tx">...</span></div>
-  <div>🕒 <b>Quantitat de models IFC registrats:</b> <span id="num-models">...</span></div>
+  <div id="transparency-title" style="font-weight:600; color:#2379ca; margin-bottom:0.6em;"></div>
+  <div><span id="transparency-tx"></span> <span id="tx-count">...</span></div>
+  <div><span id="transparency-volume"></span> <span id="tx-volume">...</span></div>
+  <div><span id="transparency-holders"></span> <span id="tx-holders">...</span></div>
+  <div><span id="transparency-contract"></span> <span id="contract-balance">...</span></div>
+  <div><span id="transparency-last"></span> <span id="last-tx">...</span></div>
+  <div><span id="transparency-num-models"></span> <span id="num-models">...</span></div>
 
 </div>
 
@@ -386,7 +386,7 @@
 
 <!-- PASSAREL·LA MOCKUP EURO → BIMCOIN -->
  <h2>Compra BIMCoin</h2>
- <label for="hash-input">La conversió entre BIMCoin i € és <b>10 BIMC = 1,00 €.</b> Per tant, si es compra per valor de 10,00 € s'obtindrà 100 BIMC. El cost per registrar un model IFC es calcula segons la quantitat de MB de l'arxiu. Per exemple, un arxiu de d'entre 2 MB i 2,99 MB té un cost de 30 BIMC. Un cop carregat l'arxiu al <a href="visor.html">visor</a>, s'informa d'aquest cost amb exactitud.</label>
+ <div id="bimc-euro-info" style="margin-bottom:1em;"></div>
 <section id="payment-mockup-section" style="max-width:420px;margin:2em auto 2em auto;padding:1.5em 2em 1.5em 2em;background:#eaf6fe;border-radius:13px;box-shadow:0 3px 16px #124c8d18;">
   <form id="mockup-payment-form" style="display:flex;flex-direction:column;gap:1.1em;">
     <label>

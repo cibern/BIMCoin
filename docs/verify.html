@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>Verifica l’autoria dels teus models BIM</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <!-- <script type="module" src="translations.js"></script>-->
+   <!-- <script type="module" src="translations.js"></script>-->
   <style>
     body { font-family: 'Segoe UI', 'Roboto', Arial, sans-serif; margin: 0; padding: 0; background: #f6f8fa; color: #232b38; }
     .container { max-width: 50vw; margin: auto; background: white; padding: 2em; border-radius: 16px; box-shadow: 0 2px 16px #0001; }
@@ -28,12 +28,31 @@
     nav { display: flex; justify-content: center; align-items: center; background: #f5faff; border-bottom: 1.5px solid #e6ecf6; gap: 0.8em; padding: 0.6em 0 0.3em 0; font-size: 1.09em; position: relative; z-index: 2; }
     nav a { color: #195186; text-decoration: none; padding: 0.46em 1.16em; border-radius: 7px; font-weight: 500; transition: background 0.14s, color 0.14s; letter-spacing: 0.02em; }
     nav a:hover, nav a.active { background: #d7ebfc; color: #124c8d; }
+    .btn-wide {
+  min-width: 180px;
+  width: 100%;
+  box-sizing: border-box;
+  display: block;
+  margin: 0 auto;
+  padding: 0.8em 0;
+  border-radius: 1em;
+  border: none;
+  background: #2379ca;
+  color: white;
+  font-size: 1em;
+  cursor: pointer;
+  font-weight: 500;
+  box-shadow: 0 2px 6px #124c8d14;
+  transition: background 0.18s;
+}
+.btn-wide:hover { background: #185999; }
+
   </style>
-  <script type="module" crossorigin src="/BIMCoin/assets/verify-DMoa5vKE.js"></script>
+  <script type="module" crossorigin src="/BIMCoin/assets/verify-mHx5TyZ3.js"></script>
   <link rel="modulepreload" crossorigin href="/BIMCoin/assets/modulepreload-polyfill-B5Qt9EMX.js">
-  <link rel="modulepreload" crossorigin href="/BIMCoin/assets/modals-BVcvpyqg.js">
+  <link rel="modulepreload" crossorigin href="/BIMCoin/assets/modals-CqInVzW5.js">
   <link rel="modulepreload" crossorigin href="/BIMCoin/assets/bimcoin-DS6TUAdR.js">
-  <link rel="modulepreload" crossorigin href="/BIMCoin/assets/blockchainConfig-nCfmhYd7.js">
+  <link rel="modulepreload" crossorigin href="/BIMCoin/assets/blockchainConfig-Mf8FSOm2.js">
 </head>
 <body>
   <header>
@@ -78,10 +97,10 @@
   </div>
   <nav>
     <a href="index.html"  id="nav-home">Home</a>
-    <a href="visor.html" id="nav-visor">Visor</a>
-    <a href="verify.html" class="active" id="nav-verify">Comprovar hash</a>
-    <a href="porpuse.html" id="nav-objectiu">Propòsit</a>
-    <a href="faqs.html" id="nav-faq">FAQ's</a>
+  <a href="visor.html"  id="nav-visor" data-intro="Accedeix al visor per veure i registrar els teus models BIM.">Visor</a>
+  <a href="verify.html" class="active" id="nav-verify">Comprovar hash</a>
+  <a href="porpuse.html" id="nav-purpose">Propòsit</a>
+  <a href="faqs.html" id="nav-faq">FAQ's</a>
   </nav>
   <div class="container">
     <h2 id="verify-title">Verifica i consulta l’autoria</h2>
@@ -91,7 +110,8 @@
     <input id="search" type="text" placeholder="Cerca per nom, versió, descripció, data, autor o hash...">
     <div id="result" class="hash-list"></div>
     <div class="info" style="margin-top:2em;">
-      <b>Contracte:</b> <span id="contractAddr"></span>
+      <b id="contract-label">Contracte:</b> <span id="contractAddr"></span>
+
     </div>
   </div>
   <!-- IMPORTANT: Només aquest import -->

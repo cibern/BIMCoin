@@ -43,10 +43,15 @@ export function showModal(message, arxiuInfo = null, progress = null) {
 
   // Contingut principal
   const msgP = document.createElement('p');
-  msgP.innerText = message;
-  msgP.style.marginBottom = '1.2em';
-  msgP.style.fontSize = '1.16em';
-  content.appendChild(msgP);
+msgP.style.marginBottom = '1.2em';
+msgP.style.fontSize = '1.16em';
+
+msgP.innerHTML = progress !== null && progress !== undefined
+  ? `${message} <span style="font-weight:500; color:#666;">${Math.floor(progress)}%</span>`
+  : message;
+
+content.appendChild(msgP);
+
 
   // Barra de progrés dins del modal (opcional)
   if (progress !== null && progress !== undefined) {

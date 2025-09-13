@@ -172,6 +172,33 @@ function renderLang(lang) {
       <div class="faq-a">${f.a}</div>
     </div>
   `).join('');
+  if ($("nav-home")) $("nav-home").textContent = t.navHome;
+  if ($("nav-visor")) $("nav-visor").textContent = t.navVisor;
+  if ($("nav-verify")) $("nav-verify").textContent = t.navVerify;
+  if ($("nav-objectiu")) $("nav-objectiu").textContent = t.navPurpose;
+  if ($("nav-faq")) $("nav-faq").textContent = t.navFaq;
+  if ($("bimc-euro-info")) $("bimc-euro-info").innerHTML = t.bimcEuroInfo;
+  if ($("download-title")) $("download-title").textContent = t.downloadTitle;
+  if ($("download-label")) $("download-label").textContent = t.downloadLabel;
+  if ($("hash-input")) $("hash-input").placeholder = t.downloadPlaceholder;
+  if ($("download-btn")) $("download-btn").textContent = t.downloadBtn;
+  if ($("transparency-title")) $("transparency-title").innerHTML = t.transparencyTitle;
+  if ($("transparency-tx")) $("transparency-tx").innerHTML = t.transparencyTx;
+  if ($("transparency-volume")) $("transparency-volume").innerHTML = t.transparencyVolume;
+  if ($("transparency-holders")) $("transparency-holders").innerHTML = t.transparencyHolders;
+  if ($("transparency-contract")) $("transparency-contract").innerHTML = t.transparencyContract;
+  if ($("transparency-last")) $("transparency-last").innerHTML = t.transparencyLast;
+  if ($("transparency-num-models")) $("transparency-num-models").innerHTML = t.transparencyNumModels;
+  if ($("buy-title")) $("buy-title").textContent = t.buyTitle;
+  if ($("buy-amount-label")) $("buy-amount-label").childNodes[0].nodeValue = t.buyAmountLabel + "\n";
+  if ($("buy-card-label")) $("buy-card-label").childNodes[0].nodeValue = t.buyCardLabel + "\n";
+  if ($("buy-card-input")) $("buy-card-input").placeholder = t.buyCardPlaceholder;
+  if ($("buy-expiry-label")) $("buy-expiry-label").childNodes[0].nodeValue = t.buyExpiryLabel + "\n";
+  if ($("buy-cvc-label")) $("buy-cvc-label").childNodes[0].nodeValue = t.buyCvcLabel + "\n";
+  if ($("buy-cvc-input")) $("buy-cvc-input").placeholder = t.buyCvcPlaceholder;
+  if ($("buy-btn")) $("buy-btn").textContent = t.buyBtn;
+  if ($("mockup-payment-result")) $("mockup-payment-result").textContent = ""; // O es mostra des del JS de validació
+
   if ($("contact-link")) $("contact-link").textContent = t.contact;
   document.documentElement.lang = lang;
 }

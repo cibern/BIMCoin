@@ -2,6 +2,7 @@ import { updateBIMCoinInfo } from './bimcoin.js';
 import { showModal, hideModal } from './modals.js';
 import { generarCertificatPDF } from './pdf.js';
 import jsPDF from "jspdf";
+import { translations } from './translations.js';
 
 
 import {
@@ -12,13 +13,121 @@ import {
   REGISTRY_ABI,
   CONTRACT_ABI
 } from './blockchainConfig.js';
+
+function getCurrentLang() {
+  return localStorage.getItem('lang') || 'ca';
+}
+const $ = (id) => document.getElementById(id);
+// Bloc de traducció multilingüe - col·loca'l aquí
+const ids = {
+  'logo-title': 'logo',
+  'subtitle': 'subtitle',
+  'verify-title': 'verifyTitle',
+  'verify-desc': 'verifyDesc',
+  'connect': 'verifyConnect',
+  'nav-home': 'navHome',
+  'nav-visor': 'navVisor',
+  'nav-verify': 'navVerify',
+  'nav-purpose': 'navPurpose',
+  'nav-faq': 'navFaq',
+  'contract-label': 'contractLabel',
+  // Afegiu-ne més si cal!
+};
+const inputPlaceholders = {
+  'search': 'verifySearchPlaceholder'
+};
+const staticTextDefaults = {
+  verifyTitle: 'Verifica i consulta l’autoria',
+  verifyDesc: 'Prem el botó per veure els últims models IFC registrats.',
+  verifyConnect: 'Consulta IFC registrats a la BlockChain',
+  verifySearchPlaceholder: 'Cerca per nom, versió, descripció, data, autor o hash...'
+};
+let userAddressGlobal = null;
+function applyTranslations(lang) {
+  const t = translations[lang] || translations.ca;
+  for (const [id, key] of Object.entries(ids)) {
+    const el = document.getElementById(id);
+    if (el && t[key]) {
+      el.innerHTML = t[key];
+    } else if (el && staticTextDefaults[key]) {
+      el.innerHTML = staticTextDefaults[key];
+    }
+  }
+  for (const [id, key] of Object.entries(inputPlaceholders)) {
+    const el = document.getElementById(id);
+    if (el && t[key]) {
+      el.placeholder = t[key];
+    } else if (el && staticTextDefaults[key]) {
+      el.placeholder = staticTextDefaults[key];
+    }
+  }
+}
+
+const langSelector = document.getElementById('lang-selector');
+let initialLang = localStorage.getItem('lang') || 'ca';
+langSelector.value = initialLang;
+applyTranslations(initialLang);
+
+function renderConnectedAddress() {
+  const lang = getCurrentLang();
+  const t = translations[lang] || translations.ca;
+  const addressDiv = document.getElementById("address");
+  if (userAddressGlobal && addressDiv) {
+    addressDiv.innerHTML = `<b>${t.connectedAddress}</b> ${userAddressGlobal}`;
+  }
+}
+
+langSelector.addEventListener('change', (e) => {
+  const lang = e.target.value;
+  localStorage.setItem('lang', lang);
+  applyTranslations(lang);
+  showFilteredList();
+  renderConnectedAddress();
+});
+
+function renderLang(lang) {
+  const t = translations[lang];
+  if (!t) return;
+  if ($("logo-title")) $("logo-title").textContent = t.logo;
+  if ($("subtitle")) $("subtitle").innerHTML = t.subtitle;
+  if ($("verify-title")) $("verify-title").textContent = t.verifyTitle;
+  if ($("verify-desc")) $("verify-desc").textContent = t.verifyDesc;
+  if ($("connect")) $("connect").textContent = t.verifyConnect;
+  if ($("search")) $("search").placeholder = t.verifySearchPlaceholder;
+  if ($("nav-home")) $("nav-home").textContent = t.navHome;
+  if ($("nav-visor")) $("nav-visor").textContent = t.navVisor;
+  if ($("nav-verify")) $("nav-verify").textContent = t.navVerify;
+  if ($("nav-objectiu")) $("nav-objectiu").textContent = t.navPurpose;
+  if ($("nav-faq")) $("nav-faq").textContent = t.navFaq;
+  if ($("contract-label")) $("contract-label").textContent = t.contractLabel;
+
+
+  // afegeix aquí el que vulguis traduir!
+  document.documentElement.lang = lang;
+}
+
+function getDefaultLang() {
+  const nav = navigator.language || "ca";
+  if (translations[nav.slice(0,2)]) return nav.slice(0,2);
+  return "ca";
+}
+
+
+
 // L'adreça del contracte de registre de models
+
 
 let lastEvents = [];
 
 document.addEventListener("DOMContentLoaded", async () => {
   // Mostra saldo BIMCoin
   updateBIMCoinInfo();
+  const langSelector = $("lang-selector");
+  let lang = localStorage.getItem('lang') || getDefaultLang();
+  langSelector.value = lang;
+  renderLang(lang);
+  
+
 
   // Mostra adreça contracte
   const contractAddrElem = document.getElementById("contractAddr");
@@ -34,15 +143,18 @@ async function connectWalletAndListHashes() {
   const resultDiv = document.getElementById("result");
   const addressDiv = document.getElementById("address");
   const searchInput = document.getElementById("search");
+  // 🔄 AGAFAR L'IDIOMA I TRADUCCIONS
+  const lang = getCurrentLang();
+  const t = translations[lang] || translations.ca;
   resultDiv.innerHTML = "";
-  addressDiv.innerHTML = "";
+  
 
   // Amaga input de cerca fins que es carreguen dades
   searchInput.value = "";
   searchInput.classList.remove("visible");
 
   if (!window.ethereum) {
-    resultDiv.innerHTML = "<b class='alert'>Necessites MetaMask per fer servir aquesta funció.</b>";
+    resultDiv.innerHTML = `<b class='alert'>${t.errorNoMetaMask}</b>`;
     return;
   }
 
@@ -53,8 +165,10 @@ async function connectWalletAndListHashes() {
   await provider.send("eth_requestAccounts", []);
   const signer = await provider.getSigner();
   const userAddress = (await signer.getAddress()).toLowerCase();
+  userAddressGlobal = userAddress;
+renderConnectedAddress(); // en comptes de addressDiv.innerHTML = ...
 
-  addressDiv.innerHTML = "<b>Adreça connectada:</b> " + userAddress;
+  addressDiv.innerHTML = `<b>${t.connectedAddress || "Adreça connectada:"}</b> ${userAddress}`;
 
   const contract = new Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
 
@@ -62,7 +176,7 @@ async function connectWalletAndListHashes() {
   try {
     latestBlock = await provider.getBlockNumber();
   } catch (err) {
-    resultDiv.innerHTML = "<b class='alert'>No s'ha pogut obtenir el número de bloc. Xarxa correcta?</b>";
+    resultDiv.innerHTML = `<b class='alert'>${t.errorBlock}</b>`;
     return;
   }
 
@@ -91,13 +205,15 @@ async function connectWalletAndListHashes() {
 
   } catch (err) {
     console.error(err);
-    resultDiv.innerHTML = "<b class='alert'>Error consultant els registres o massa dades a processar.<br>Revisa que estàs a la xarxa correcta i que el contracte sigui correcte.</b>";
+    resultDiv.innerHTML = `<b class='alert'>${t.errorQuery}</b>`;
   }
 }
 
 function showFilteredList() {
   const resultDiv = document.getElementById("result");
   const searchInput = document.getElementById("search");
+  const lang = getCurrentLang();
+  const t = translations[lang] || translations.ca;
   const searchValue = (searchInput.value || "").toLowerCase().trim();
 
   let filtered = lastEvents;
@@ -115,11 +231,11 @@ function showFilteredList() {
   filtered = filtered.slice(0, 50);
 
   if (filtered.length === 0) {
-    resultDiv.innerHTML = "<i>No hi ha registres coincidents.</i>";
+    resultDiv.innerHTML = `<i>${t.noMatches}</i>`;
     return;
   }
 
-  resultDiv.innerHTML = `<h3>A continuació es mostren els 50 últims models IFC registrats a la BlockChain:</h3>`;
+  resultDiv.innerHTML = `<h3>${t.latest50}</h3>`;
   filtered.forEach((model, i) => {
     // Extraure CID del text "CID: xyz" a la descripció
     let cid = null, imageCID = null, fileSizeMB = null;
@@ -136,62 +252,68 @@ function showFilteredList() {
       cost = cost * 10; // cada MB → 10 BIMCoin
     }
 
-resultDiv.innerHTML += `
+    resultDiv.innerHTML += `
   <div class="hash-item">
     <b>#${i + 1} — ${model.filename}</b><br>
     <span class="hash">${model.hash}</span>
-    <span>Versió: <b>${model.version}</b></span><br>
-    <span>Descripció: ${(model.description || '-')
+    <span>${t.version}: <b>${model.version}</b></span><br>
+    <span>${t.description}: ${(model.description || '-')
       .replace(/CID:\s*[a-z0-9]+/i, '')
       .replace(/IMG:\s*[a-z0-9]+/i, '')
       .replace(/MB:\s*[\d.]+/i, '')
       .replace(/\n+$/, '')
       .trim()}</span><br>
-    <span style="color:#777">Data: ${formatDate(model.datetime)}</span><br>
-    <span style="color:#aaa">Author: ${model.author}</span>
+      <span style="color:#777">${t.date}: ${formatDate(model.datetime)}</span><br>
+      <span style="color:#aaa">${t.author}: ${model.author}</span>
     ${imageCID ? `
-      <div style="display: flex; align-items: flex-start; gap: 2em; margin-top: 1.2em;">
+      <div style="display: flex; align-items: flex-start; gap: 2em; margin-top: 1.1em;">
         <img src="https://gateway.lighthouse.storage/ipfs/${imageCID}" 
           alt="Captura del model" 
-          style="max-width: 180px; border-radius: 0.6em; box-shadow: 0 2px 8px #0002; max-height: 160px;">
-
-        <div style="display: flex; flex-direction: column; gap: 1.1em;">
-          <div style="display: flex; align-items: center; gap: 0.7em;">
-            <button
-              class="download-btn"
-              data-cid="${cid}"
-              data-filename="${model.filename || 'model'}.ifc"
-              data-cost="${cost}"
-            >
-              ⬇️ Descarregar IFC
-            </button>
-            ${cost ? `
-              <span style="font-size:1.1em; color:#195186; background:#e7f6fa; border-radius:7px; padding:0.4em 0.8em; display:inline-block;">
-                💰 ${cost} BIMCoin
-              </span>
-            ` : ""}
-          </div>
-          <div>
-            <button
-              class="download-pdf-btn"
-              data-index="${i}"
-              style="margin-top:0.8em;"
-            >
-              📄 Descarregar PDF
-            </button>
-            <span style="margin-left:1em;color:#195186;">Sense cap cost</span>
-          </div>
+          style="max-width: 220px; max-height: 180px; border-radius: 0.6em; box-shadow: 0 2px 8px #0002;">
+        <div style="display: flex; flex-direction: column; gap: 0.5em; justify-content: flex-start; min-width:200px; max-width:250px;">
+          <button
+            class="btn-wide download-btn"
+            data-cid="${cid}"
+            data-filename="${model.filename || 'model'}.ifc"
+            data-cost="${cost}"
+          >${t.downloadIFC}</button>
+          ${cost ? `
+            <span style="font-size:1em; color:#195186; background:#e7f6fa; border-radius:7px; padding:0.25em 0.8em; display:inline-block; text-align:center; margin-bottom:0.3em;">
+              💰 ${cost} BIMCoin
+            </span>
+          ` : ""}
+          <!--
+          <button
+            class="btn-wide download-dxf-btn"
+            data-cid="${cid}"
+            data-filename="${(model.filename || 'model').replace(/\.ifc$/i, '')}.dxf"
+            data-cost="${cost}"
+          >${t.downloadDXF}</button>
+          -->
+          <button
+            class="btn-wide download-pdf-btn"
+            data-index="${i}"
+          >${t.downloadPDF}</button>
+          <span style="margin-left:0.2em;color:#195186; display:block; text-align:center;">${t.noCost}</span>
         </div>
       </div>
     ` : ""}
   </div>
 `;
 
+
+  
+  
+
   });
 
   // Listeners per la descàrrega
 document.querySelectorAll('.download-btn').forEach(btn => {
   btn.onclick = async function () {
+
+    const lang = getCurrentLang();
+    const t = translations[lang] || translations.ca;
+
     const cid = btn.getAttribute('data-cid');
     const filename = btn.getAttribute('data-filename') || 'model.ifc';
     const cost = Number(btn.getAttribute('data-cost')) || 0;
@@ -209,7 +331,7 @@ document.querySelectorAll('.download-btn').forEach(btn => {
       }
 
       // 1. Comprovant saldo
-      showModal("💰 Comprovant saldo de BIMCoin...");
+      showModal(t.modalCheckingBalance);
       await delay(2000);
 
       const { BrowserProvider, Contract, parseUnits, formatUnits } = await import("ethers");
@@ -222,7 +344,7 @@ document.querySelectorAll('.download-btn').forEach(btn => {
       const DEST_ADDRESS = "0x03c89df2366f99C8e4E4C9010143d54064c0E893";
 
       // 2. Connectant a MetaMask
-      showModal("🔌 Connectant a MetaMask...");
+      showModal(t.modalConnectingWallet);
       await delay(2000);
       const provider = new BrowserProvider(window.ethereum);
       await provider.send("eth_requestAccounts", []);
@@ -249,7 +371,7 @@ document.querySelectorAll('.download-btn').forEach(btn => {
       }
 
       // 3. Pagant amb BIMCoin...
-      showModal("💸 Realitzant pagament amb BIMCoin...");
+      showModal(t.modalPaying);
       await delay(2000);
       const tx = await token.transfer(DEST_ADDRESS, value);
       await tx.wait();
@@ -257,7 +379,7 @@ document.querySelectorAll('.download-btn').forEach(btn => {
       updateBIMCoinInfo();
 
       // 4. Baixant l'arxiu...
-      showModal("⬇️ Baixant fitxer IFC...");
+      showModal(t.modalDownloadingIFC);
       await delay(2000);
       await downloadIFC(cid, filename, btn);
       updateBIMCoinInfo();
@@ -281,12 +403,14 @@ document.querySelectorAll('.download-pdf-btn').forEach(btn => {
     let filtered = lastEvents;
     if (searchValue) {
       filtered = filtered.filter(model =>
-        (model.filename && model.filename.toLowerCase().includes(searchValue)) ||
-        (model.version && model.version.toLowerCase().includes(searchValue)) ||
-        (model.description && model.description.toLowerCase().includes(searchValue)) ||
-        (model.datetime && String(model.datetime).toLowerCase().includes(searchValue)) ||
-        (model.author && String(model.author).toLowerCase().includes(searchValue)) ||
-        (model.hash && model.hash.toLowerCase().includes(searchValue))
+        model && (
+          (typeof model.filename === "string" && model.filename.toLowerCase().includes(searchValue)) ||
+          (typeof model.version === "string" && model.version.toLowerCase().includes(searchValue)) ||
+          (typeof model.description === "string" && model.description.toLowerCase().includes(searchValue)) ||
+          (typeof model.datetime === "string" && model.datetime.toLowerCase().includes(searchValue)) ||
+          (typeof model.author === "string" && model.author.toLowerCase().includes(searchValue)) ||
+          (typeof model.hash === "string" && model.hash.toLowerCase().includes(searchValue))
+        )
       );
     }
     filtered = filtered.slice(0, 10);
@@ -316,7 +440,7 @@ document.querySelectorAll('.download-pdf-btn').forEach(btn => {
 // Funció per la descàrrega amb progrés i modal
 async function downloadIFC(cid, filename, btn) {
   try {
-    showModal("⬇️ Iniciant descàrrega IFC...");
+    showModal(t.modalDownloadStart);
     await delay(2000);
     const response = await fetch(`https://gateway.lighthouse.storage/ipfs/${cid}`);
     if (!response.ok) throw new Error('No s\'ha pogut descarregar el fitxer');
@@ -341,7 +465,7 @@ async function downloadIFC(cid, filename, btn) {
         btn.textContent = `Descarregant... ${percent}%`;
         // Actualitza el modal cada 10%
         if (percent - lastPercent >= 10 || percent === 100) {
-          showModal(`⬇️ Baixant fitxer... ${percent}%`);
+          showModal(t.modalDownloadProgress.replace("{percent}", percent));
           await delay(2000);
           lastPercent = percent;
         }
@@ -371,11 +495,7 @@ async function downloadIFC(cid, filename, btn) {
     btn.textContent = "⬇️ Descarregar IFC";
   }
 }
-
-
 }
-
-
 
 function formatDate(datetime) {
   if (!datetime) return "";
@@ -388,3 +508,35 @@ function formatDate(datetime) {
 function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
+//
+document.addEventListener("click", async (e) => {
+  if (e.target.classList.contains("download-dxf-btn")) {
+    const cid = e.target.getAttribute("data-cid");
+    const filename = e.target.getAttribute("data-filename");
+
+    try {
+      // Crida al backend per generar el DXF
+      const res = await fetch("http://localhost:3030/convert-dxf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cid, filename })
+      });
+
+      if (!res.ok) throw new Error("Error durant la conversió");
+
+      const blob = await res.blob();
+
+      // Crear descàrrega automàtica
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+    } catch (err) {
+      alert("❌ Error generant el DXF: " + err.message);
+    }
+  }
+});
+
